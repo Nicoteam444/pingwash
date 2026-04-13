@@ -42,167 +42,174 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Hero illustration - Animated Penguin washing car */}
+            {/* Hero illustration - Cute penguin with clean car */}
             <div className="relative flex items-center justify-center">
               <div className="w-80 h-80 sm:w-96 sm:h-96 relative">
-                <svg viewBox="0 0 400 400" className="w-full h-full overflow-visible">
+                <svg viewBox="0 0 400 420" className="w-full h-full overflow-visible">
                   <defs>
-                    {/* Scrubbing arm animation */}
                     <style>{`
-                      @keyframes scrub {
-                        0%, 100% { transform: rotate(-5deg); }
-                        50% { transform: rotate(15deg); }
+                      @keyframes gentleSway {
+                        0%, 100% { transform: translateY(0) rotate(0deg); }
+                        50% { transform: translateY(-6px) rotate(1deg); }
                       }
-                      @keyframes bubble1 {
-                        0% { transform: translate(0, 0); opacity: 0.7; }
-                        100% { transform: translate(-15px, -60px); opacity: 0; }
+                      @keyframes wave {
+                        0%, 60%, 100% { transform: rotate(0deg); }
+                        10% { transform: rotate(12deg); }
+                        20% { transform: rotate(-6deg); }
+                        30% { transform: rotate(10deg); }
+                        40% { transform: rotate(-4deg); }
+                        50% { transform: rotate(6deg); }
                       }
-                      @keyframes bubble2 {
-                        0% { transform: translate(0, 0); opacity: 0.6; }
-                        100% { transform: translate(10px, -70px); opacity: 0; }
+                      @keyframes blink {
+                        0%, 42%, 44%, 100% { transform: scaleY(1); }
+                        43% { transform: scaleY(0.1); }
                       }
-                      @keyframes bubble3 {
-                        0% { transform: translate(0, 0); opacity: 0.5; }
-                        100% { transform: translate(-8px, -55px); opacity: 0; }
+                      @keyframes floatBubble {
+                        0% { transform: translateY(0) scale(1); opacity: 0.6; }
+                        100% { transform: translateY(-80px) scale(0.4); opacity: 0; }
                       }
-                      @keyframes bubble4 {
-                        0% { transform: translate(0, 0); opacity: 0.6; }
-                        100% { transform: translate(12px, -65px); opacity: 0; }
+                      @keyframes twinkle {
+                        0%, 100% { opacity: 0.2; transform: scale(0.8); }
+                        50% { opacity: 1; transform: scale(1.1); }
                       }
-                      @keyframes sparkle {
-                        0%, 100% { opacity: 0; transform: scale(0.5); }
-                        50% { opacity: 1; transform: scale(1.2); }
+                      @keyframes carShine {
+                        0%, 100% { opacity: 0.08; }
+                        50% { opacity: 0.2; }
                       }
-                      @keyframes penguinBounce {
-                        0%, 100% { transform: translateY(0); }
-                        50% { transform: translateY(-4px); }
+                      @keyframes heartFloat {
+                        0% { transform: translateY(0) scale(0); opacity: 0; }
+                        20% { transform: translateY(-5px) scale(1); opacity: 1; }
+                        100% { transform: translateY(-35px) scale(0.6); opacity: 0; }
                       }
-                      @keyframes spongeWipe {
-                        0%, 100% { transform: translate(0, 0) rotate(0deg); }
-                        25% { transform: translate(15px, -5px) rotate(5deg); }
-                        50% { transform: translate(30px, 0) rotate(0deg); }
-                        75% { transform: translate(15px, 5px) rotate(-5deg); }
-                      }
-                      @keyframes waterDrip {
-                        0% { transform: translateY(0); opacity: 0.8; }
-                        100% { transform: translateY(25px); opacity: 0; }
-                      }
-                      @keyframes shine {
-                        0% { transform: translateX(-40px); opacity: 0; }
-                        50% { opacity: 0.6; }
-                        100% { transform: translateX(200px); opacity: 0; }
-                      }
-                      .scrub-arm { animation: scrub 0.8s ease-in-out infinite; transform-origin: 85px 260px; }
-                      .bubble-1 { animation: bubble1 2.5s ease-out infinite; }
-                      .bubble-2 { animation: bubble2 3s ease-out infinite 0.5s; }
-                      .bubble-3 { animation: bubble3 2.8s ease-out infinite 1s; }
-                      .bubble-4 { animation: bubble4 3.2s ease-out infinite 1.5s; }
-                      .sparkle-1 { animation: sparkle 2s ease-in-out infinite; }
-                      .sparkle-2 { animation: sparkle 2s ease-in-out infinite 0.7s; }
-                      .sparkle-3 { animation: sparkle 2s ease-in-out infinite 1.4s; }
-                      .sparkle-4 { animation: sparkle 1.8s ease-in-out infinite 0.3s; }
-                      .penguin-body { animation: penguinBounce 0.8s ease-in-out infinite; }
-                      .sponge { animation: spongeWipe 1.2s ease-in-out infinite; }
-                      .water-drip-1 { animation: waterDrip 1.5s ease-in infinite 0.2s; }
-                      .water-drip-2 { animation: waterDrip 1.5s ease-in infinite 0.8s; }
-                      .water-drip-3 { animation: waterDrip 1.5s ease-in infinite 1.4s; }
-                      .car-shine { animation: shine 3s ease-in-out infinite; }
+                      .penguin-sway { animation: gentleSway 3s ease-in-out infinite; }
+                      .penguin-wave { animation: wave 3s ease-in-out infinite; transform-origin: 252px 250px; }
+                      .penguin-eyes { animation: blink 4s ease-in-out infinite; transform-origin: 200px 195px; }
+                      .fb-1 { animation: floatBubble 4s ease-out infinite; }
+                      .fb-2 { animation: floatBubble 4.5s ease-out infinite 0.8s; }
+                      .fb-3 { animation: floatBubble 3.8s ease-out infinite 1.6s; }
+                      .fb-4 { animation: floatBubble 5s ease-out infinite 2.4s; }
+                      .fb-5 { animation: floatBubble 4.2s ease-out infinite 3.2s; }
+                      .tw-1 { animation: twinkle 2.5s ease-in-out infinite; }
+                      .tw-2 { animation: twinkle 2.5s ease-in-out infinite 0.8s; }
+                      .tw-3 { animation: twinkle 2.5s ease-in-out infinite 1.6s; }
+                      .tw-4 { animation: twinkle 3s ease-in-out infinite 0.4s; }
+                      .car-glow { animation: carShine 3s ease-in-out infinite; }
+                      .heart-1 { animation: heartFloat 3s ease-out infinite 0.5s; }
+                      .heart-2 { animation: heartFloat 3s ease-out infinite 2s; }
                     `}</style>
+                    {/* Soft gradient for ground */}
+                    <radialGradient id="groundGlow" cx="50%" cy="50%">
+                      <stop offset="0%" stopColor="#bae6fd" stopOpacity="0.5" />
+                      <stop offset="100%" stopColor="#e0f2fe" stopOpacity="0.1" />
+                    </radialGradient>
                   </defs>
 
-                  {/* Ice / ground with shadow */}
-                  <ellipse cx="200" cy="350" rx="170" ry="30" fill="#e0f2fe" />
-                  <ellipse cx="200" cy="352" rx="140" ry="18" fill="#bae6fd" opacity="0.4" />
+                  {/* Soft ground */}
+                  <ellipse cx="200" cy="370" rx="180" ry="35" fill="url(#groundGlow)" />
+                  <ellipse cx="200" cy="370" rx="150" ry="22" fill="#e0f2fe" opacity="0.6" />
 
-                  {/* Car body */}
-                  <rect x="100" y="240" width="220" height="75" rx="12" fill="#64748b" />
-                  <path d="M145 240 L168 185 L290 185 L310 240Z" fill="#475569" />
-                  {/* Car shine effect */}
-                  <rect className="car-shine" x="100" y="240" width="40" height="75" rx="12" fill="white" opacity="0.15" />
-                  {/* Windows */}
-                  <rect x="173" y="192" width="52" height="42" rx="5" fill="#bae6fd" opacity="0.8" />
-                  <rect x="233" y="192" width="52" height="42" rx="5" fill="#bae6fd" opacity="0.8" />
-                  {/* Window reflections */}
-                  <line x1="178" y1="197" x2="190" y2="228" stroke="white" strokeWidth="1.5" opacity="0.4" />
-                  <line x1="238" y1="197" x2="250" y2="228" stroke="white" strokeWidth="1.5" opacity="0.4" />
-                  {/* Door handle */}
-                  <rect x="210" y="265" width="18" height="4" rx="2" fill="#94a3b8" />
-                  {/* Headlights */}
-                  <circle cx="310" cy="268" r="8" fill="#fbbf24" opacity="0.8" />
-                  <circle cx="110" cy="268" r="8" fill="#fbbf24" opacity="0.6" />
-                  {/* Wheels */}
-                  <circle cx="160" cy="320" r="24" fill="#1e293b" />
-                  <circle cx="160" cy="320" r="12" fill="#475569" />
-                  <circle cx="160" cy="320" r="4" fill="#94a3b8" />
-                  <circle cx="290" cy="320" r="24" fill="#1e293b" />
-                  <circle cx="290" cy="320" r="12" fill="#475569" />
-                  <circle cx="290" cy="320" r="4" fill="#94a3b8" />
+                  {/* Clean sparkling car — rounded, friendly shape */}
+                  <g>
+                    {/* Car shadow */}
+                    <ellipse cx="220" cy="368" rx="120" ry="12" fill="#cbd5e1" opacity="0.3" />
+                    {/* Car body */}
+                    <rect x="110" y="265" width="220" height="75" rx="18" fill="#0ea5e9" />
+                    <rect x="110" y="265" width="220" height="75" rx="18" fill="white" opacity="0.15" className="car-glow" />
+                    {/* Car roof */}
+                    <path d="M155 265 Q165 210 195 210 L270 210 Q300 210 310 265" fill="#0284c7" />
+                    {/* Windows */}
+                    <rect x="180" y="218" width="45" height="40" rx="8" fill="#bae6fd" opacity="0.9" />
+                    <rect x="233" y="218" width="45" height="40" rx="8" fill="#bae6fd" opacity="0.9" />
+                    {/* Window reflections */}
+                    <line x1="186" y1="225" x2="192" y2="250" stroke="white" strokeWidth="2" opacity="0.35" strokeLinecap="round" />
+                    <line x1="239" y1="225" x2="245" y2="250" stroke="white" strokeWidth="2" opacity="0.35" strokeLinecap="round" />
+                    {/* Bumpers rounded */}
+                    <rect x="105" y="310" width="230" height="10" rx="5" fill="#0284c7" opacity="0.6" />
+                    {/* Headlights — friendly round */}
+                    <circle cx="320" cy="295" r="10" fill="#fde68a" />
+                    <circle cx="320" cy="295" r="6" fill="#fbbf24" opacity="0.6" />
+                    <circle cx="118" cy="295" r="10" fill="#fde68a" />
+                    <circle cx="118" cy="295" r="6" fill="#fbbf24" opacity="0.6" />
+                    {/* Smile on car (cute!) */}
+                    <path d="M300 300 Q310 308 320 300" fill="none" stroke="#0369a1" strokeWidth="1.5" strokeLinecap="round" opacity="0.3" />
+                    {/* Wheels */}
+                    <circle cx="170" cy="340" r="22" fill="#1e293b" />
+                    <circle cx="170" cy="340" r="13" fill="#334155" />
+                    <circle cx="170" cy="340" r="5" fill="#94a3b8" />
+                    <circle cx="290" cy="340" r="22" fill="#1e293b" />
+                    <circle cx="290" cy="340" r="13" fill="#334155" />
+                    <circle cx="290" cy="340" r="5" fill="#94a3b8" />
+                  </g>
 
-                  {/* Penguin */}
-                  <g className="penguin-body">
+                  {/* Cute penguin — big, round, happy */}
+                  <g className="penguin-sway">
+                    {/* Penguin shadow */}
+                    <ellipse cx="70" cy="368" rx="35" ry="8" fill="#cbd5e1" opacity="0.3" />
                     {/* Feet */}
-                    <ellipse cx="50" cy="305" rx="12" ry="5" fill="#f97316" />
-                    <ellipse cx="72" cy="305" rx="12" ry="5" fill="#f97316" />
-                    {/* Body */}
-                    <ellipse cx="60" cy="265" rx="32" ry="48" fill="#0c1e2c" />
-                    {/* Belly */}
-                    <ellipse cx="60" cy="275" rx="22" ry="32" fill="white" />
-                    {/* Head */}
-                    <circle cx="60" cy="222" r="22" fill="#0c1e2c" />
-                    {/* Face */}
-                    <ellipse cx="60" cy="228" rx="14" ry="12" fill="white" opacity="0.15" />
-                    {/* Eyes */}
-                    <circle cx="52" cy="218" r="6" fill="white" />
-                    <circle cx="68" cy="218" r="6" fill="white" />
-                    <circle cx="53" cy="217" r="3.5" fill="#0ea5e9" />
-                    <circle cx="69" cy="217" r="3.5" fill="#0ea5e9" />
-                    <circle cx="54" cy="216" r="1.5" fill="white" />
-                    <circle cx="70" cy="216" r="1.5" fill="white" />
-                    {/* Beak */}
-                    <ellipse cx="60" cy="228" rx="5" ry="3" fill="#f97316" />
-                    {/* Happy blush */}
-                    <circle cx="44" cy="224" r="4" fill="#fda4af" opacity="0.3" />
-                    <circle cx="76" cy="224" r="4" fill="#fda4af" opacity="0.3" />
-                    {/* Crown / hat */}
-                    <path d="M48 202 L60 192 L72 202" fill="none" stroke="#fbbf24" strokeWidth="2.5" strokeLinecap="round" />
-                    <circle cx="60" cy="191" r="3" fill="#fbbf24" />
-                  </g>
-
-                  {/* Scrubbing arm + sponge */}
-                  <g className="scrub-arm">
-                    <line x1="85" y1="260" x2="115" y2="248" stroke="#0c1e2c" strokeWidth="8" strokeLinecap="round" />
-                    <g className="sponge">
-                      <rect x="110" y="238" width="24" height="18" rx="6" fill="#fbbf24" />
-                      <rect x="113" y="241" width="4" height="4" rx="1" fill="#f59e0b" opacity="0.5" />
-                      <rect x="120" y="244" width="4" height="4" rx="1" fill="#f59e0b" opacity="0.5" />
-                      <rect x="126" y="240" width="4" height="4" rx="1" fill="#f59e0b" opacity="0.5" />
+                    <ellipse cx="52" cy="345" rx="14" ry="7" fill="#f97316" />
+                    <ellipse cx="88" cy="345" rx="14" ry="7" fill="#f97316" />
+                    {/* Body — big round belly */}
+                    <ellipse cx="70" cy="290" rx="42" ry="60" fill="#0c1e2c" />
+                    {/* White belly — big and round */}
+                    <ellipse cx="70" cy="300" rx="30" ry="42" fill="white" />
+                    {/* Head — big and round */}
+                    <circle cx="70" cy="225" r="32" fill="#0c1e2c" />
+                    {/* White face area */}
+                    <ellipse cx="70" cy="230" rx="22" ry="18" fill="white" opacity="0.08" />
+                    {/* Eyes — big, round, friendly */}
+                    <g className="penguin-eyes">
+                      <circle cx="57" cy="220" r="9" fill="white" />
+                      <circle cx="83" cy="220" r="9" fill="white" />
+                      <circle cx="59" cy="219" r="5" fill="#0c1e2c" />
+                      <circle cx="85" cy="219" r="5" fill="#0c1e2c" />
+                      {/* Eye shine */}
+                      <circle cx="61" cy="217" r="2" fill="white" />
+                      <circle cx="87" cy="217" r="2" fill="white" />
                     </g>
+                    {/* Happy beak — smiling */}
+                    <ellipse cx="70" cy="233" rx="6" ry="4" fill="#f97316" />
+                    {/* Big smile */}
+                    <path d="M60 238 Q70 248 80 238" fill="none" stroke="#0c1e2c" strokeWidth="2" strokeLinecap="round" />
+                    {/* Rosy cheeks */}
+                    <circle cx="46" cy="232" r="6" fill="#fda4af" opacity="0.25" />
+                    <circle cx="94" cy="232" r="6" fill="#fda4af" opacity="0.25" />
+                    {/* Left flipper — holding cloth gently */}
+                    <path d="M30 270 Q20 285 30 300" fill="#0c1e2c" stroke="#0c1e2c" strokeWidth="3" strokeLinecap="round" />
+                    {/* Cloth in left flipper */}
+                    <rect x="18" y="292" width="18" height="12" rx="4" fill="#7dd3fc" />
+                    <line x1="21" y1="296" x2="21" y2="301" stroke="#bae6fd" strokeWidth="1" />
+                    <line x1="26" y1="295" x2="26" y2="302" stroke="#bae6fd" strokeWidth="1" />
+                    <line x1="31" y1="296" x2="31" y2="301" stroke="#bae6fd" strokeWidth="1" />
                   </g>
 
-                  {/* Foam / bubbles rising */}
-                  <circle className="bubble-1" cx="125" cy="235" r="5" fill="#e0f2fe" stroke="#bae6fd" strokeWidth="1" />
-                  <circle className="bubble-2" cx="140" cy="228" r="4" fill="#e0f2fe" stroke="#bae6fd" strokeWidth="1" />
-                  <circle className="bubble-3" cx="118" cy="222" r="3.5" fill="#e0f2fe" stroke="#bae6fd" strokeWidth="1" />
-                  <circle className="bubble-4" cx="148" cy="240" r="3" fill="#e0f2fe" stroke="#bae6fd" strokeWidth="1" />
-                  <circle className="bubble-2" cx="132" cy="245" r="2.5" fill="#e0f2fe" stroke="#bae6fd" strokeWidth="1" />
+                  {/* Waving right flipper */}
+                  <g className="penguin-wave">
+                    <path d="M108 265 Q125 250 118 232" fill="none" stroke="#0c1e2c" strokeWidth="10" strokeLinecap="round" />
+                  </g>
 
-                  {/* Water drips from car */}
-                  <ellipse className="water-drip-1" cx="180" cy="315" rx="2" ry="4" fill="#0ea5e9" opacity="0.6" />
-                  <ellipse className="water-drip-2" cx="230" cy="315" rx="1.5" ry="3.5" fill="#0ea5e9" opacity="0.5" />
-                  <ellipse className="water-drip-3" cx="260" cy="315" rx="2" ry="4" fill="#0ea5e9" opacity="0.6" />
+                  {/* Floating hearts */}
+                  <text className="heart-1" x="115" y="210" fontSize="16" fill="#f472b6">&#x2665;</text>
+                  <text className="heart-2" x="90" y="195" fontSize="12" fill="#fb923c">&#x2665;</text>
 
-                  {/* Sparkle stars */}
-                  <text className="sparkle-1" x="320" y="200" fontSize="22" fill="#fbbf24">✦</text>
-                  <text className="sparkle-2" x="340" y="255" fontSize="16" fill="#0ea5e9">✦</text>
-                  <text className="sparkle-3" x="85" y="175" fontSize="18" fill="#10b981">✦</text>
-                  <text className="sparkle-4" x="300" y="170" fontSize="14" fill="#0ea5e9">✧</text>
-                  <text className="sparkle-1" x="30" y="195" fontSize="12" fill="#fbbf24">✧</text>
+                  {/* Gentle floating bubbles */}
+                  <circle className="fb-1" cx="40" cy="280" r="6" fill="#e0f2fe" stroke="#bae6fd" strokeWidth="0.8" />
+                  <circle className="fb-2" cx="55" cy="270" r="4.5" fill="#e0f2fe" stroke="#bae6fd" strokeWidth="0.8" />
+                  <circle className="fb-3" cx="25" cy="290" r="3.5" fill="#e0f2fe" stroke="#bae6fd" strokeWidth="0.8" />
+                  <circle className="fb-4" cx="95" cy="275" r="5" fill="#e0f2fe" stroke="#bae6fd" strokeWidth="0.8" />
+                  <circle className="fb-5" cx="45" cy="260" r="3" fill="#e0f2fe" stroke="#bae6fd" strokeWidth="0.8" />
 
-                  {/* Water bucket next to penguin */}
-                  <rect x="15" y="290" width="22" height="18" rx="3" fill="#0284c7" />
-                  <rect x="12" y="288" width="28" height="4" rx="2" fill="#0369a1" />
-                  <ellipse cx="26" cy="295" rx="6" ry="2" fill="#7dd3fc" opacity="0.5" />
-                  <path d="M18 286 Q26 280 34 286" fill="none" stroke="#94a3b8" strokeWidth="1.5" />
+                  {/* Sparkle stars around car */}
+                  <text className="tw-1" x="340" y="215" fontSize="18" fill="#fbbf24">&#x2726;</text>
+                  <text className="tw-2" x="145" y="200" fontSize="14" fill="#0ea5e9">&#x2726;</text>
+                  <text className="tw-3" x="310" y="260" fontSize="12" fill="#10b981">&#x2726;</text>
+                  <text className="tw-4" x="355" y="290" fontSize="16" fill="#0ea5e9">&#x2727;</text>
+
+                  {/* "CLEAN!" badge on car */}
+                  <g>
+                    <rect x="200" y="275" width="60" height="22" rx="11" fill="#10b981" />
+                    <text x="210" y="291" fontSize="11" fill="white" fontWeight="bold" fontFamily="sans-serif">CLEAN</text>
+                    <text x="250" y="289" fontSize="10" fill="white">&#x2728;</text>
+                  </g>
                 </svg>
               </div>
             </div>
