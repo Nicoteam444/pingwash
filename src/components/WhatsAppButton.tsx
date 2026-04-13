@@ -3,7 +3,7 @@
 export default function WhatsAppButton() {
   return (
     <a
-      href="https://wa.me/33600000000?text=Bonjour%20PINGWASH%20!%20J%27ai%20une%20question."
+      href="https://wa.me/33647602979?text=Bonjour%20PINGWASH%20!%20J%27ai%20une%20question."
       target="_blank"
       rel="noopener noreferrer"
       className="fixed bottom-6 right-6 z-50 w-14 h-14 bg-[#25D366] hover:bg-[#20bd5a] rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-all group"
