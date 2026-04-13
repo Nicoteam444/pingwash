@@ -6,6 +6,8 @@ import MultiStepForm from "@/components/MultiStepForm";
 import StepCard from "@/components/StepCard";
 import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/context/AuthProvider";
+import AddressAutocomplete from "@/components/AddressAutocomplete";
+import type { AddressDetails } from "@/components/AddressAutocomplete";
 
 const VEHICLE_TYPES = [
   { id: "voiture", icon: "🚗", label: "Voiture" },
@@ -247,12 +249,16 @@ export default function OnboardingClient() {
         <div className="space-y-4">
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-1.5">Adresse</label>
-            <input
-              type="text"
+            <AddressAutocomplete
               value={address}
-              onChange={(e) => setAddress(e.target.value)}
+              onChange={(displayName: string, details: AddressDetails | null) => {
+                setAddress(displayName);
+                if (details) {
+                  if (details.postcode) setPostalCode(details.postcode);
+                  if (details.city) setCity(details.city);
+                }
+              }}
               placeholder="12 rue de la Paix"
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-pingwash-blue/30 focus:border-pingwash-blue transition-all"
             />
           </div>
           <div>

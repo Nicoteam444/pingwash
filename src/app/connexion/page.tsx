@@ -6,6 +6,8 @@ import Link from "next/link";
 import PingwashLogo from "@/components/PingwashLogo";
 import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/context/AuthProvider";
+import AddressAutocomplete from "@/components/AddressAutocomplete";
+import type { AddressDetails } from "@/components/AddressAutocomplete";
 
 type Step = "home" | "email" | "login" | "signup";
 type Role = "client" | "laveur";
@@ -68,9 +70,16 @@ function ConnexionContent() {
     }
   }, [searchParams]);
 
+  const handleAddressChange = (displayName: string, details: AddressDetails | null) => {
+    setAddress(displayName);
+    if (details) {
+      sessionStorage.setItem("pingwash_address", displayName);
+      sessionStorage.setItem("pingwash_address_details", JSON.stringify(details));
+    }
+  };
+
   const handleAddressSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    // Store address for later use in booking, then go to auth
     if (address.trim()) {
       sessionStorage.setItem("pingwash_address", address);
     }
@@ -245,21 +254,12 @@ function ConnexionContent() {
                 onSubmit={handleAddressSearch}
                 className="mt-8 flex flex-col sm:flex-row gap-3 max-w-2xl"
               >
-                <div className="flex-1 relative">
-                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
-                    </svg>
-                  </div>
-                  <input
-                    type="text"
-                    value={address}
-                    onChange={(e) => setAddress(e.target.value)}
-                    placeholder="Saisissez votre adresse"
-                    className="w-full pl-12 pr-4 py-4 bg-white rounded-xl text-[15px] text-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pingwash-blue/30 border border-gray-200 shadow-sm"
-                  />
-                </div>
+                <AddressAutocomplete
+                  value={address}
+                  onChange={handleAddressChange}
+                  placeholder="Saisissez votre adresse"
+                  className="flex-1"
+                />
                 <div className="flex gap-3">
                   <div className="relative">
                     <select className="appearance-none bg-white rounded-xl px-4 py-4 pr-10 text-[15px] text-black font-medium focus:outline-none focus:ring-2 focus:ring-pingwash-blue/30 border border-gray-200 shadow-sm cursor-pointer">
