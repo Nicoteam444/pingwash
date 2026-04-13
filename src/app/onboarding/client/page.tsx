@@ -79,9 +79,16 @@ const STEPS = [
 export default function OnboardingClient() {
   const router = useRouter();
   const supabase = createClient();
-  const { user } = useAuth();
+  const { user, refreshProfile } = useAuth();
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
+
+  // Inline signup fields (shown at recap if not logged in)
+  const [signupEmail, setSignupEmail] = useState("");
+  const [signupPassword, setSignupPassword] = useState("");
+  const [signupFirstName, setSignupFirstName] = useState("");
+  const [signupLastName, setSignupLastName] = useState("");
+  const [signupPhone, setSignupPhone] = useState("");
 
   const [vehicleType, setVehicleType] = useState("");
   const [vehicleBrand, setVehicleBrand] = useState("");
@@ -132,20 +139,62 @@ export default function OnboardingClient() {
       steps={STEPS}
       accentColor="blue"
       onComplete={async () => {
-        if (!user) {
-          router.push("/connexion?redirect=/onboarding/client");
-          return;
-        }
-
         setIsSaving(true);
         setSaveError("");
 
         try {
+          let currentUser = user;
+
+          // If not logged in, sign up first
+          if (!currentUser) {
+            if (!signupEmail || !signupPassword || !signupFirstName || !signupLastName) {
+              setSaveError("Veuillez remplir tous les champs du compte pour confirmer.");
+              setIsSaving(false);
+              return;
+            }
+            if (signupPassword.length < 6) {
+              setSaveError("Le mot de passe doit contenir au moins 6 caractères.");
+              setIsSaving(false);
+              return;
+            }
+
+            const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+              email: signupEmail,
+              password: signupPassword,
+              options: {
+                data: {
+                  first_name: signupFirstName,
+                  last_name: signupLastName,
+                  phone: signupPhone,
+                  role: "client",
+                },
+              },
+            });
+
+            if (signUpError) {
+              setSaveError(signUpError.message);
+              setIsSaving(false);
+              return;
+            }
+
+            currentUser = signUpData.user;
+            if (refreshProfile) await refreshProfile();
+
+            // Small delay for the trigger to create the profile
+            await new Promise((r) => setTimeout(r, 1000));
+          }
+
+          if (!currentUser) {
+            setSaveError("Erreur de création de compte. Veuillez réessayer.");
+            setIsSaving(false);
+            return;
+          }
+
           // 1. Create vehicle
           const { data: vehicle, error: vehicleError } = await supabase
             .from("vehicles")
             .insert({
-              user_id: user.id,
+              user_id: currentUser.id,
               type: vehicleType,
               brand: vehicleBrand || null,
               model: vehicleModel || null,
@@ -163,7 +212,7 @@ export default function OnboardingClient() {
 
           // 3. Create booking
           const { error: bookingError } = await supabase.from("bookings").insert({
-            user_id: user.id,
+            user_id: currentUser.id,
             vehicle_id: vehicle.id,
             location_type: locationType || null,
             address,
@@ -178,6 +227,10 @@ export default function OnboardingClient() {
           });
 
           if (bookingError) throw bookingError;
+
+          // Clear stored address
+          sessionStorage.removeItem("pingwash_address");
+          sessionStorage.removeItem("pingwash_address_details");
 
           router.push("/");
         } catch (err) {
@@ -568,6 +621,77 @@ export default function OnboardingClient() {
               </p>
             </div>
           </div>
+
+          {/* Inline signup if not logged in */}
+          {!user && (
+            <div className="mt-6 p-5 bg-pingwash-ice rounded-2xl border border-pingwash-blue/20">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 rounded-full bg-pingwash-blue/10 flex items-center justify-center">
+                  <span className="text-lg">🐧</span>
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-pingwash-navy">Créez votre compte pour confirmer</h3>
+                  <p className="text-xs text-gray-500">Rapide — 30 secondes</p>
+                </div>
+              </div>
+              <div className="space-y-3">
+                <div className="grid grid-cols-2 gap-3">
+                  <input
+                    type="text"
+                    value={signupFirstName}
+                    onChange={(e) => setSignupFirstName(e.target.value)}
+                    placeholder="Prénom"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-pingwash-blue/30 focus:border-pingwash-blue transition-all bg-white"
+                  />
+                  <input
+                    type="text"
+                    value={signupLastName}
+                    onChange={(e) => setSignupLastName(e.target.value)}
+                    placeholder="Nom"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-pingwash-blue/30 focus:border-pingwash-blue transition-all bg-white"
+                  />
+                </div>
+                <input
+                  type="email"
+                  value={signupEmail}
+                  onChange={(e) => setSignupEmail(e.target.value)}
+                  placeholder="Email"
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-pingwash-blue/30 focus:border-pingwash-blue transition-all bg-white"
+                />
+                <input
+                  type="tel"
+                  value={signupPhone}
+                  onChange={(e) => setSignupPhone(e.target.value)}
+                  placeholder="Téléphone (optionnel)"
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-pingwash-blue/30 focus:border-pingwash-blue transition-all bg-white"
+                />
+                <input
+                  type="password"
+                  value={signupPassword}
+                  onChange={(e) => setSignupPassword(e.target.value)}
+                  placeholder="Mot de passe (min. 6 caractères)"
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-pingwash-blue/30 focus:border-pingwash-blue transition-all bg-white"
+                />
+              </div>
+              <p className="text-xs text-gray-400 mt-3">
+                En confirmant, vous acceptez les{" "}
+                <a href="#" className="underline">Conditions d&apos;utilisation</a> et la{" "}
+                <a href="#" className="underline">Politique de confidentialité</a>.
+              </p>
+            </div>
+          )}
+
+          {user && (
+            <div className="mt-6 p-4 bg-pingwash-ice rounded-xl flex items-center gap-3">
+              <div className="w-9 h-9 rounded-full bg-pingwash-blue text-white flex items-center justify-center text-sm font-bold">
+                ✓
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-pingwash-navy">Connecté</p>
+                <p className="text-xs text-gray-500">{user.email}</p>
+              </div>
+            </div>
+          )}
 
           {saveError && (
             <div className="mt-4 p-3 bg-red-50 text-red-600 text-sm rounded-xl">
