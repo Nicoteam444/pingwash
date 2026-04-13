@@ -92,15 +92,3 @@ html {
   opacity: 1;
   transform: translateY(0);
 }
-
-/* Dark mode */
-[data-theme="dark"] {
-  --background: #0c1e2c;
-  --foreground: #e0f2fe;
-  --pingwash-ice: #1a2e3e;
-}
-
-[data-theme="dark"] body {
-  background: var(--background);
-  color: var(--foreground);
-}
