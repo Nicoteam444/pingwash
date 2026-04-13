@@ -9,6 +9,7 @@ import type { AddressDetails } from "./AddressAutocomplete";
 export default function HeroSearch() {
   const router = useRouter();
   const [address, setAddress] = useState("");
+  const [schedule, setSchedule] = useState("now");
 
   const handleAddressChange = (displayName: string, details: AddressDetails | null) => {
     setAddress(displayName);
@@ -23,18 +24,34 @@ export default function HeroSearch() {
     if (address.trim()) {
       sessionStorage.setItem("pingwash_address", address);
     }
-    router.push("/connexion?redirect=/onboarding/client");
+    sessionStorage.setItem("pingwash_schedule", schedule);
+    router.push("/onboarding/client");
   };
 
   return (
     <>
-      <form onSubmit={handleSubmit} className="mt-8 flex flex-col sm:flex-row gap-3 max-w-xl">
+      <form onSubmit={handleSubmit} className="mt-8 flex flex-col sm:flex-row gap-3 max-w-2xl">
         <AddressAutocomplete
           value={address}
           onChange={handleAddressChange}
           placeholder="Saisissez votre adresse"
           className="flex-1"
         />
+        <div className="relative">
+          <select
+            value={schedule}
+            onChange={(e) => setSchedule(e.target.value)}
+            className="appearance-none bg-white rounded-xl px-4 py-4 pr-10 text-[15px] text-black font-medium focus:outline-none focus:ring-2 focus:ring-pingwash-blue/30 border border-gray-200 shadow-sm cursor-pointer h-full"
+          >
+            <option value="now">Maintenant</option>
+            <option value="planned">Planifier</option>
+          </select>
+          <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+            <svg className="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+            </svg>
+          </div>
+        </div>
         <button
           type="submit"
           className="inline-flex items-center justify-center px-8 py-4 text-base font-bold text-white bg-pingwash-blue hover:bg-pingwash-blue-dark rounded-xl transition-all shadow-sm whitespace-nowrap"
