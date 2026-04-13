@@ -23,7 +23,7 @@ export default function HeroSearch() {
     if (address.trim()) {
       sessionStorage.setItem("pingwash_address", address);
     }
-    router.push("/connexion");
+    router.push("/connexion?redirect=/onboarding/client");
   };
 
   return (

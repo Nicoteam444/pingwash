@@ -45,7 +45,9 @@ function ConnexionContent() {
   const { user, isLoading: authLoading } = useAuth();
   const supabase = createClient();
 
-  const [step, setStep] = useState<Step>("home");
+  // If address already in sessionStorage (coming from homepage), skip to auth
+  const hasStoredAddress = typeof window !== "undefined" && sessionStorage.getItem("pingwash_address");
+  const [step, setStep] = useState<Step>(hasStoredAddress ? "email" : "home");
   const [address, setAddress] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -56,13 +58,19 @@ function ConnexionContent() {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const redirect = searchParams.get("redirect") || "/";
+  const redirect = searchParams.get("redirect") || "/onboarding/client";
 
   useEffect(() => {
     if (!authLoading && user) {
       router.push(redirect);
     }
   }, [user, authLoading, router, redirect]);
+
+  useEffect(() => {
+    // Load stored address
+    const stored = sessionStorage.getItem("pingwash_address");
+    if (stored) setAddress(stored);
+  }, []);
 
   useEffect(() => {
     if (searchParams.get("error") === "auth") {

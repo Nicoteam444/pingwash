@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import MultiStepForm from "@/components/MultiStepForm";
 import StepCard from "@/components/StepCard";
@@ -92,6 +92,20 @@ export default function OnboardingClient() {
   const [addressComplement, setAddressComplement] = useState("");
   const [city, setCity] = useState("");
   const [postalCode, setPostalCode] = useState("");
+
+  // Pre-fill address from sessionStorage (coming from homepage/connexion)
+  useEffect(() => {
+    const storedAddress = sessionStorage.getItem("pingwash_address");
+    const storedDetails = sessionStorage.getItem("pingwash_address_details");
+    if (storedAddress) setAddress(storedAddress);
+    if (storedDetails) {
+      try {
+        const details = JSON.parse(storedDetails);
+        if (details.postcode) setPostalCode(details.postcode);
+        if (details.city) setCity(details.city);
+      } catch { /* ignore */ }
+    }
+  }, []);
 
   const [scheduleType, setScheduleType] = useState<"immediate" | "planned" | "">("");
   const [selectedDate, setSelectedDate] = useState("");
