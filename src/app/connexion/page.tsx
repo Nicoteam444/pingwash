@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import PingwashLogo from "@/components/PingwashLogo";
@@ -26,6 +26,18 @@ const CITIES = [
 ];
 
 export default function ConnexionPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="w-8 h-8 border-2 border-gray-200 border-t-pingwash-blue rounded-full animate-spin" />
+      </div>
+    }>
+      <ConnexionContent />
+    </Suspense>
+  );
+}
+
+function ConnexionContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user, isLoading: authLoading } = useAuth();
