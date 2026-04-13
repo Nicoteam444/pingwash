@@ -29,18 +29,35 @@ export default function Home() {
                 Voiture, moto ou vélo — en 30 secondes, c&apos;est réservé.
               </p>
 
-              <div className="mt-8 flex flex-col sm:flex-row gap-4">
+              {/* Address search bar */}
+              <div className="mt-8 flex flex-col sm:flex-row gap-3 max-w-xl">
+                <div className="flex-1 relative">
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
+                    </svg>
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="Saisissez votre adresse"
+                    className="w-full pl-12 pr-4 py-4 bg-white rounded-xl text-[15px] text-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pingwash-blue/30 border border-gray-200 shadow-sm"
+                  />
+                </div>
                 <Link
                   href="/connexion"
-                  className="inline-flex items-center justify-center px-8 py-4 text-base font-bold text-white bg-pingwash-blue hover:bg-pingwash-blue-dark rounded-full transition-all hover:scale-105 shadow-lg shadow-pingwash-blue/30"
+                  className="inline-flex items-center justify-center px-8 py-4 text-base font-bold text-white bg-pingwash-blue hover:bg-pingwash-blue-dark rounded-xl transition-all shadow-sm whitespace-nowrap"
                 >
-                  Réserver un lavage
+                  Réserver
                 </Link>
+              </div>
+
+              <div className="mt-4">
                 <Link
                   href="/devenir-laveur"
-                  className="inline-flex items-center justify-center px-8 py-4 text-base font-bold text-pingwash-navy bg-white border-2 border-gray-200 hover:border-pingwash-green hover:text-pingwash-green rounded-full transition-all"
+                  className="text-sm font-medium text-pingwash-green hover:text-pingwash-green-dark transition-colors"
                 >
-                  Devenir laveur
+                  Devenir laveur →
                 </Link>
               </div>
 
