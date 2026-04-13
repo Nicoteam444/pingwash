@@ -25,7 +25,13 @@ export default function HeroSearch() {
       sessionStorage.setItem("pingwash_address", address);
     }
     sessionStorage.setItem("pingwash_schedule", schedule);
-    router.push("/onboarding/client");
+    // Scroll to booking widget
+    const el = document.getElementById("reserver");
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth" });
+    } else {
+      router.push("/onboarding/client");
+    }
   };
 
   return (

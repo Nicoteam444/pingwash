@@ -2,6 +2,7 @@ import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import HeroSearch from "@/components/HeroSearch";
+import BookingWidget from "@/components/BookingWidget";
 
 export default function Home() {
   return (
@@ -216,6 +217,9 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* Booking Widget */}
+      <BookingWidget />
 
       {/* Comment ça marche */}
       <section id="comment-ca-marche" className="py-24 bg-white">
