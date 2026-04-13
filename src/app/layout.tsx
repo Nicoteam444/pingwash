@@ -21,12 +21,21 @@ export const metadata: Metadata = {
     siteName: "PINGWASH",
     locale: "fr_FR",
     type: "website",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 2400,
+        height: 1260,
+        alt: "PINGWASH — Votre véhicule lavé. La banquise protégée.",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "PINGWASH — Le laveur qui protège la banquise",
     description:
       "Lavage auto, moto & vélo à domicile ou en entreprise. Écologique, rapide et intelligent.",
+    images: ["/og-image.png"],
   },
 };
 
