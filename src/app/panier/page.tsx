@@ -133,7 +133,7 @@ export default function PanierPage() {
       }
 
       clearCart();
-      setIsSuccess(true);
+      router.push("/confirmation");
     } catch (err) {
       console.error("Checkout error:", err);
       setError("Erreur lors de la validation. Veuillez réessayer.");

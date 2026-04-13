@@ -3,6 +3,8 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import HeroSearch from "@/components/HeroSearch";
 import BookingWidget from "@/components/BookingWidget";
+import ScrollReveal from "@/components/ScrollReveal";
+import WhatsAppButton from "@/components/WhatsAppButton";
 
 export default function Home() {
   return (
@@ -447,6 +449,65 @@ export default function Home() {
           </Link>
         </div>
       </section>
+
+      {/* Testimonials */}
+      <ScrollReveal>
+        <section className="py-24 bg-white">
+          <div className="max-w-5xl mx-auto px-4 sm:px-6">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl sm:text-4xl font-black text-pingwash-navy">
+                Ils adorent <span className="text-gradient">PINGWASH</span>
+              </h2>
+              <p className="mt-3 text-gray-500 text-lg">+2 000 véhicules lavés, 4.9/5 de satisfaction</p>
+            </div>
+            <div className="grid sm:grid-cols-3 gap-6">
+              {[
+                {
+                  name: "Sophie M.",
+                  city: "Paris",
+                  rating: 5,
+                  text: "Service incroyable ! Le laveur est arrivé en 20 min, ma voiture était impeccable. Et tout ça sans gaspiller d'eau !",
+                  avatar: "SM",
+                },
+                {
+                  name: "Thomas L.",
+                  city: "Lyon",
+                  rating: 5,
+                  text: "J'ai pris le forfait Royal pour ma Tesla. Résultat bluffant, même le moteur était propre. Je recommande à 100%.",
+                  avatar: "TL",
+                },
+                {
+                  name: "Amira K.",
+                  city: "Bordeaux",
+                  rating: 5,
+                  text: "Plus besoin d'aller au car wash ! Le laveur vient au bureau pendant que je travaille. Gain de temps énorme.",
+                  avatar: "AK",
+                },
+              ].map((review) => (
+                <div key={review.name} className="p-6 rounded-2xl bg-gradient-to-b from-pingwash-ice/30 to-white border border-gray-100">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 rounded-full bg-pingwash-blue text-white flex items-center justify-center text-sm font-bold">
+                      {review.avatar}
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-pingwash-navy">{review.name}</p>
+                      <p className="text-xs text-gray-500">📍 {review.city}</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-0.5 mb-3">
+                    {Array.from({ length: review.rating }).map((_, i) => (
+                      <span key={i} className="text-yellow-400 text-sm">★</span>
+                    ))}
+                  </div>
+                  <p className="text-sm text-gray-600 leading-relaxed">&ldquo;{review.text}&rdquo;</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      </ScrollReveal>
+
+      <WhatsAppButton />
 
       <Footer />
     </>

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useCart } from "@/context/CartProvider";
+import { useToast } from "@/components/Toast";
 import AddressAutocomplete from "./AddressAutocomplete";
 import type { AddressDetails } from "./AddressAutocomplete";
 
@@ -47,6 +48,7 @@ const OPTIONS = [
 
 export default function BookingWidget() {
   const { addItem, itemCount } = useCart();
+  const { toast } = useToast();
 
   const [address, setAddress] = useState("");
   const [addressDetails, setAddressDetails] = useState<AddressDetails | null>(null);
@@ -108,6 +110,7 @@ export default function BookingWidget() {
     setVehicleType("");
     setSelectedForfait("");
     setSelectedOptions([]);
+    toast("Lavage ajouté au panier !");
     setShowSuccess(true);
     setTimeout(() => setShowSuccess(false), 3000);
   };
