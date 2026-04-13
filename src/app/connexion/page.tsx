@@ -1,302 +1,579 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import PingwashLogo from "@/components/PingwashLogo";
+import { createClient } from "@/lib/supabase/client";
+import { useAuth } from "@/context/AuthProvider";
 
-type Tab = "connexion" | "inscription";
+type Step = "home" | "email" | "login" | "signup";
 type Role = "client" | "laveur";
+
+const CITIES = [
+  { name: "Paris", postalCode: "75000" },
+  { name: "Lyon", postalCode: "69000" },
+  { name: "Marseille", postalCode: "13000" },
+  { name: "Toulouse", postalCode: "31000" },
+  { name: "Bordeaux", postalCode: "33000" },
+  { name: "Nantes", postalCode: "44000" },
+  { name: "Lille", postalCode: "59000" },
+  { name: "Nice", postalCode: "06000" },
+  { name: "Strasbourg", postalCode: "67000" },
+  { name: "Montpellier", postalCode: "34000" },
+  { name: "Rennes", postalCode: "35000" },
+  { name: "Grenoble", postalCode: "38000" },
+];
 
 export default function ConnexionPage() {
   const router = useRouter();
-  const [tab, setTab] = useState<Tab>("connexion");
+  const searchParams = useSearchParams();
+  const { user, isLoading: authLoading } = useAuth();
+  const supabase = createClient();
+
+  const [step, setStep] = useState<Step>("home");
+  const [address, setAddress] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [phone, setPhone] = useState("");
   const [role, setRole] = useState<Role>("client");
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
+  const redirect = searchParams.get("redirect") || "/";
+
+  useEffect(() => {
+    if (!authLoading && user) {
+      router.push(redirect);
+    }
+  }, [user, authLoading, router, redirect]);
+
+  useEffect(() => {
+    if (searchParams.get("error") === "auth") {
+      setError("Une erreur est survenue lors de la connexion. Veuillez réessayer.");
+    }
+  }, [searchParams]);
+
+  const handleAddressSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Store address for later use in booking, then go to auth
+    if (address.trim()) {
+      sessionStorage.setItem("pingwash_address", address);
+    }
+    setStep("email");
+  };
+
+  const handleCityClick = (city: string) => {
+    setAddress(city);
+    sessionStorage.setItem("pingwash_address", city);
+    setStep("email");
+  };
+
+  const handleEmailContinue = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+
+    if (!email.trim()) {
+      setError("Veuillez entrer votre email.");
+      return;
+    }
+
+    setIsLoading(true);
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email,
+      password: "__check_existence__",
+    });
+    setIsLoading(false);
+
+    if (signInError?.message === "Invalid login credentials") {
+      setStep("login");
+    } else {
+      setStep("signup");
+    }
+  };
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setIsLoading(true);
+
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    setIsLoading(false);
+
+    if (signInError) {
+      setError("Email ou mot de passe incorrect.");
+      return;
+    }
+
+    router.push(redirect);
+  };
+
+  const handleSignup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+
+    if (!firstName.trim() || !lastName.trim()) {
+      setError("Veuillez remplir tous les champs obligatoires.");
+      return;
+    }
+
+    if (password.length < 6) {
+      setError("Le mot de passe doit contenir au moins 6 caractères.");
+      return;
+    }
+
+    setIsLoading(true);
+
+    const { error: signUpError } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          first_name: firstName,
+          last_name: lastName,
+          phone,
+          role,
+        },
+      },
+    });
+
+    setIsLoading(false);
+
+    if (signUpError) {
+      setError(signUpError.message);
+      return;
+    }
+
+    router.push(role === "laveur" ? "/onboarding/laveur" : "/onboarding/client");
+  };
+
+  const handleGoogleLogin = async () => {
+    setError("");
+    await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback?redirect=${redirect}`,
+      },
+    });
+  };
+
+  const handleBack = () => {
+    if (step === "email") {
+      setStep("home");
+    } else {
+      setStep("email");
+    }
+    setPassword("");
+    setError("");
+  };
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="w-8 h-8 border-2 border-gray-200 border-t-pingwash-navy rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen flex">
-      {/* Left panel - branding */}
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-pingwash-navy to-pingwash-blue-dark relative overflow-hidden items-center justify-center p-12">
-        <div className="absolute inset-0">
-          <div className="absolute top-20 left-20 w-64 h-64 bg-pingwash-blue/20 rounded-full blur-3xl" />
-          <div className="absolute bottom-20 right-20 w-48 h-48 bg-pingwash-green/20 rounded-full blur-3xl" />
-        </div>
-
-        <div className="relative text-white text-center max-w-md">
-          <svg viewBox="0 0 200 200" className="w-40 h-40 mx-auto mb-8 animate-float">
-            <ellipse cx="100" cy="110" rx="40" ry="60" fill="white" opacity="0.15" />
-            <ellipse cx="100" cy="100" rx="35" ry="52" fill="#0c1e2c" />
-            <ellipse cx="100" cy="110" rx="23" ry="35" fill="white" />
-            <circle cx="90" cy="85" r="6" fill="#0ea5e9" />
-            <circle cx="110" cy="85" r="6" fill="#0ea5e9" />
-            <ellipse cx="100" cy="95" rx="5" ry="3" fill="#f97316" />
-            {/* Crown / sparkle */}
-            <text x="80" y="65" fontSize="20" fill="#fbbf24">✦</text>
-            <text x="115" y="72" fontSize="14" fill="#10b981">✦</text>
-          </svg>
-
-          <h1 className="text-3xl font-black">PINGWASH</h1>
-          <p className="mt-2 text-lg text-blue-200">Le laveur qui protège la banquise</p>
-
-          <div className="mt-10 grid grid-cols-3 gap-4">
-            {[
-              { value: "30s", label: "pour réserver" },
-              { value: "4.9★", label: "satisfaction" },
-              { value: "99%", label: "eau économisée" },
-            ].map((stat) => (
-              <div key={stat.label} className="text-center">
-                <div className="text-2xl font-black">{stat.value}</div>
-                <div className="text-xs text-blue-300 mt-1">{stat.label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Right panel - form */}
-      <div className="flex-1 flex flex-col items-center justify-center px-4 sm:px-8 py-12 bg-white">
-        <div className="w-full max-w-md">
-          {/* Logo mobile */}
-          <div className="lg:hidden mb-8">
-            <Link href="/">
-              <PingwashLogo className="h-9 mx-auto" />
-            </Link>
-          </div>
-
-          {/* Back to home */}
-          <Link
-            href="/"
-            className="inline-flex items-center gap-1 text-sm text-gray-400 hover:text-pingwash-blue transition-colors mb-8"
-          >
-            ← Retour à l&apos;accueil
-          </Link>
-
-          {/* Tab toggle */}
-          <div className="flex bg-gray-100 rounded-full p-1 mb-8">
+    <div className="min-h-screen bg-white flex flex-col">
+      {/* Header */}
+      <header className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+        <Link href="/">
+          <PingwashLogo className="h-8" />
+        </Link>
+        {step === "home" && (
+          <div className="flex items-center gap-3">
             <button
-              onClick={() => setTab("connexion")}
-              className={`flex-1 py-2.5 text-sm font-semibold rounded-full transition-all ${
-                tab === "connexion"
-                  ? "bg-white text-pingwash-navy shadow-sm"
-                  : "text-gray-500 hover:text-gray-700"
-              }`}
+              onClick={() => setStep("email")}
+              className="px-5 py-2.5 text-sm font-semibold text-black hover:bg-gray-100 rounded-full transition-colors"
             >
               Connexion
             </button>
             <button
-              onClick={() => setTab("inscription")}
-              className={`flex-1 py-2.5 text-sm font-semibold rounded-full transition-all ${
-                tab === "inscription"
-                  ? "bg-white text-pingwash-navy shadow-sm"
-                  : "text-gray-500 hover:text-gray-700"
-              }`}
+              onClick={() => {
+                setStep("email");
+              }}
+              className="px-5 py-2.5 text-sm font-semibold text-white bg-pingwash-blue hover:bg-pingwash-blue-dark rounded-full transition-colors"
             >
               Inscription
             </button>
           </div>
+        )}
+      </header>
 
-          {/* Role selector (inscription only) */}
-          {tab === "inscription" && (
-            <div className="flex gap-3 mb-6">
-              <button
-                onClick={() => setRole("client")}
-                className={`flex-1 p-4 rounded-xl border-2 transition-all text-left ${
-                  role === "client"
-                    ? "border-pingwash-blue bg-pingwash-blue/5"
-                    : "border-gray-200 hover:border-gray-300"
-                }`}
-              >
-                <div className="text-lg mb-1">🚗</div>
-                <div className="font-semibold text-sm text-pingwash-navy">Client</div>
-                <div className="text-xs text-gray-500">Je veux faire laver mon véhicule</div>
-              </button>
-              <button
-                onClick={() => setRole("laveur")}
-                className={`flex-1 p-4 rounded-xl border-2 transition-all text-left ${
-                  role === "laveur"
-                    ? "border-pingwash-green bg-pingwash-green/5"
-                    : "border-gray-200 hover:border-gray-300"
-                }`}
-              >
-                <div className="text-lg mb-1">🐧</div>
-                <div className="font-semibold text-sm text-pingwash-navy">Laveur</div>
-                <div className="text-xs text-gray-500">Je veux rejoindre l&apos;équipe</div>
-              </button>
+      {/* ===== STEP: HOME — Hero + Address bar + Cities ===== */}
+      {step === "home" && (
+        <>
+          {/* Hero */}
+          <section className="relative bg-gradient-to-b from-pingwash-ice to-white overflow-hidden">
+            {/* Background decorations */}
+            <div className="absolute inset-0 pointer-events-none">
+              <div className="absolute top-10 right-10 w-72 h-72 bg-pingwash-blue/10 rounded-full blur-3xl" />
+              <div className="absolute bottom-10 left-10 w-56 h-56 bg-pingwash-green/8 rounded-full blur-3xl" />
             </div>
-          )}
 
-          <h2 className="text-2xl font-black text-pingwash-navy mb-2">
-            {tab === "connexion" ? "Bon retour !" : "Bienvenue chez PINGWASH"}
-          </h2>
-          <p className="text-sm text-gray-500 mb-6">
-            {tab === "connexion"
-              ? "Connectez-vous pour gérer vos lavages."
-              : role === "client"
-              ? "Créez votre compte et réservez votre premier lavage."
-              : "Rejoignez notre équipe de laveurs indépendants."}
-          </p>
+            <div className="relative max-w-5xl mx-auto px-4 sm:px-6 py-16 sm:py-24">
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-pingwash-navy leading-tight max-w-2xl">
+                Votre véhicule lavé.{" "}
+                <span className="text-gradient">Où que vous soyez.</span>
+              </h1>
+              <p className="mt-4 text-lg text-gray-600 max-w-lg">
+                Réservez un laveur professionnel à domicile ou au bureau en 30 secondes.
+              </p>
 
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              if (tab === "inscription") {
-                router.push(role === "laveur" ? "/onboarding/laveur" : "/onboarding/client");
-              } else {
-                router.push("/");
-              }
-            }}
-            className="space-y-4"
-          >
-            {tab === "inscription" && (
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label htmlFor="prenom" className="block text-xs font-medium text-gray-700 mb-1.5">
-                    Prénom
-                  </label>
+              {/* Address search bar */}
+              <form
+                onSubmit={handleAddressSearch}
+                className="mt-8 flex flex-col sm:flex-row gap-3 max-w-2xl"
+              >
+                <div className="flex-1 relative">
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
+                    </svg>
+                  </div>
                   <input
-                    id="prenom"
                     type="text"
-                    placeholder="Jean"
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-pingwash-blue/30 focus:border-pingwash-blue transition-all"
+                    value={address}
+                    onChange={(e) => setAddress(e.target.value)}
+                    placeholder="Saisissez votre adresse"
+                    className="w-full pl-12 pr-4 py-4 bg-white rounded-xl text-[15px] text-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pingwash-blue/30 border border-gray-200 shadow-sm"
                   />
                 </div>
-                <div>
-                  <label htmlFor="nom" className="block text-xs font-medium text-gray-700 mb-1.5">
-                    Nom
-                  </label>
-                  <input
-                    id="nom"
-                    type="text"
-                    placeholder="Dupont"
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-pingwash-blue/30 focus:border-pingwash-blue transition-all"
-                  />
+                <div className="flex gap-3">
+                  <div className="relative">
+                    <select className="appearance-none bg-white rounded-xl px-4 py-4 pr-10 text-[15px] text-black font-medium focus:outline-none focus:ring-2 focus:ring-pingwash-blue/30 border border-gray-200 shadow-sm cursor-pointer">
+                      <option>Maintenant</option>
+                      <option>Planifier</option>
+                    </select>
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                      <svg className="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                      </svg>
+                    </div>
+                  </div>
+                  <button
+                    type="submit"
+                    className="px-8 py-4 bg-pingwash-blue text-white font-bold text-[15px] rounded-xl hover:bg-pingwash-blue-dark transition-colors shadow-sm whitespace-nowrap"
+                  >
+                    Réserver
+                  </button>
                 </div>
-              </div>
-            )}
-
-            <div>
-              <label htmlFor="email" className="block text-xs font-medium text-gray-700 mb-1.5">
-                Email
-              </label>
-              <input
-                id="email"
-                type="email"
-                placeholder="jean@exemple.fr"
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-pingwash-blue/30 focus:border-pingwash-blue transition-all"
-              />
+              </form>
             </div>
+          </section>
 
-            {tab === "inscription" && (
-              <div>
-                <label htmlFor="telephone" className="block text-xs font-medium text-gray-700 mb-1.5">
-                  Téléphone
-                </label>
-                <input
-                  id="telephone"
-                  type="tel"
-                  placeholder="06 12 34 56 78"
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-pingwash-blue/30 focus:border-pingwash-blue transition-all"
-                />
-              </div>
-            )}
-
-            <div>
-              <label htmlFor="password" className="block text-xs font-medium text-gray-700 mb-1.5">
-                Mot de passe
-              </label>
-              <input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-pingwash-blue/30 focus:border-pingwash-blue transition-all"
-              />
+          {/* Cities grid */}
+          <section className="max-w-5xl mx-auto px-4 sm:px-6 py-12">
+            <h2 className="text-xl font-bold text-black mb-6">
+              Villes disponibles
+            </h2>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+              {CITIES.map((city) => (
+                <button
+                  key={city.name}
+                  onClick={() => handleCityClick(city.name)}
+                  className="flex items-center gap-3 p-4 rounded-xl border border-gray-200 hover:border-pingwash-blue hover:bg-pingwash-blue/5 transition-all text-left group"
+                >
+                  <div className="w-10 h-10 rounded-full bg-gray-100 group-hover:bg-pingwash-blue/10 flex items-center justify-center transition-colors">
+                    <svg className="w-5 h-5 text-gray-400 group-hover:text-pingwash-blue transition-colors" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-black">{city.name}</p>
+                    <p className="text-xs text-gray-400">{city.postalCode}</p>
+                  </div>
+                </button>
+              ))}
             </div>
+          </section>
 
-            {tab === "connexion" && (
-              <div className="flex items-center justify-between">
-                <label className="flex items-center gap-2 text-xs text-gray-500">
-                  <input type="checkbox" className="rounded" />
-                  Se souvenir de moi
-                </label>
-                <a href="#" className="text-xs text-pingwash-blue hover:underline">
-                  Mot de passe oublié ?
-                </a>
+          {/* How it works mini section */}
+          <section className="border-t border-gray-100 bg-pingwash-ice/50">
+            <div className="max-w-5xl mx-auto px-4 sm:px-6 py-12">
+              <div className="grid sm:grid-cols-3 gap-8 text-center">
+                {[
+                  { icon: "📍", title: "Entrez votre adresse", desc: "Domicile, bureau ou parking" },
+                  { icon: "🐧", title: "Un laveur arrive", desc: "Professionnel formé, sous 30 min" },
+                  { icon: "✨", title: "Véhicule impeccable", desc: "Écologique — 99% d'eau économisée" },
+                ].map((s) => (
+                  <div key={s.title}>
+                    <div className="text-3xl mb-3">{s.icon}</div>
+                    <h3 className="text-base font-bold text-black">{s.title}</h3>
+                    <p className="text-sm text-gray-500 mt-1">{s.desc}</p>
+                  </div>
+                ))}
               </div>
+            </div>
+          </section>
+        </>
+      )}
+
+      {/* ===== AUTH STEPS (email / login / signup) ===== */}
+      {step !== "home" && (
+        <main className="flex-1 flex items-center justify-center px-4 py-12">
+          <div className="w-full max-w-[400px]">
+            {/* Step: Email */}
+            {step === "email" && (
+              <>
+                <button
+                  onClick={handleBack}
+                  className="flex items-center gap-1 text-sm text-gray-500 hover:text-black transition-colors mb-6"
+                >
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+                  </svg>
+                  Retour
+                </button>
+
+                <h1 className="text-[28px] font-bold text-black leading-tight mb-6">
+                  Connectez-vous ou inscrivez-vous
+                </h1>
+
+                <form onSubmit={handleEmailContinue} className="space-y-4">
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="Entrez votre email"
+                    autoFocus
+                    className="w-full px-4 py-[14px] bg-[#F3F3F3] rounded-lg text-[15px] text-black placeholder-[#5E5E5E] focus:outline-none focus:ring-2 focus:ring-black/20 transition-all"
+                  />
+
+                  {error && <p className="text-red-500 text-sm">{error}</p>}
+
+                  <button
+                    type="submit"
+                    disabled={isLoading}
+                    className="w-full py-[14px] bg-pingwash-blue text-white font-medium text-[15px] rounded-lg hover:bg-pingwash-blue-dark transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
+                  >
+                    {isLoading ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        Chargement...
+                      </span>
+                    ) : (
+                      "Continuer"
+                    )}
+                  </button>
+                </form>
+
+                <div className="flex items-center gap-4 my-6">
+                  <div className="flex-1 h-px bg-gray-200" />
+                  <span className="text-sm text-[#5E5E5E]">ou</span>
+                  <div className="flex-1 h-px bg-gray-200" />
+                </div>
+
+                <div className="space-y-3">
+                  <button
+                    onClick={handleGoogleLogin}
+                    className="flex items-center w-full py-[14px] px-4 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors"
+                  >
+                    <svg className="w-5 h-5" viewBox="0 0 24 24">
+                      <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4" />
+                      <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
+                      <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
+                      <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
+                    </svg>
+                    <span className="flex-1 text-center text-[15px] font-medium text-black">
+                      Continuer avec Google
+                    </span>
+                  </button>
+
+                  <button
+                    disabled
+                    className="flex items-center w-full py-[14px] px-4 rounded-lg border border-gray-300 opacity-50 cursor-not-allowed"
+                  >
+                    <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z" />
+                    </svg>
+                    <span className="flex-1 text-center text-[15px] font-medium text-gray-400">
+                      Continuer avec Apple
+                    </span>
+                  </button>
+                </div>
+
+                <p className="text-xs text-[#5E5E5E] mt-8 leading-relaxed">
+                  En continuant, vous acceptez les{" "}
+                  <a href="#" className="underline">Conditions d&apos;utilisation</a> et la{" "}
+                  <a href="#" className="underline">Politique de confidentialité</a> de PINGWASH.
+                </p>
+              </>
             )}
 
-            <button
-              type="submit"
-              className={`w-full py-3.5 rounded-full font-bold text-sm text-white transition-all hover:scale-[1.02] shadow-lg ${
-                tab === "inscription" && role === "laveur"
-                  ? "bg-pingwash-green hover:bg-pingwash-green-dark shadow-pingwash-green/30"
-                  : "bg-pingwash-blue hover:bg-pingwash-blue-dark shadow-pingwash-blue/30"
-              }`}
-            >
-              {tab === "connexion"
-                ? "Se connecter"
-                : role === "client"
-                ? "Créer mon compte"
-                : "Postuler comme laveur"}
-            </button>
-          </form>
-
-          {/* Divider */}
-          <div className="flex items-center gap-3 my-6">
-            <div className="flex-1 h-px bg-gray-200" />
-            <span className="text-xs text-gray-400">ou</span>
-            <div className="flex-1 h-px bg-gray-200" />
-          </div>
-
-          {/* Social login */}
-          <div className="flex flex-col gap-3">
-            <button className="flex items-center justify-center gap-3 w-full py-3 rounded-xl border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
-              <svg className="w-5 h-5" viewBox="0 0 24 24">
-                <path
-                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"
-                  fill="#4285F4"
-                />
-                <path
-                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                  fill="#34A853"
-                />
-                <path
-                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                  fill="#FBBC05"
-                />
-                <path
-                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                  fill="#EA4335"
-                />
-              </svg>
-              Continuer avec Google
-            </button>
-            <button className="flex items-center justify-center gap-3 w-full py-3 rounded-xl border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
-              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z" />
-              </svg>
-              Continuer avec Apple
-            </button>
-          </div>
-
-          <p className="text-center text-xs text-gray-400 mt-8">
-            {tab === "connexion" ? (
+            {/* Step: Login */}
+            {step === "login" && (
               <>
-                Pas encore de compte ?{" "}
-                <button onClick={() => setTab("inscription")} className="text-pingwash-blue hover:underline font-medium">
-                  S&apos;inscrire
+                <button
+                  onClick={handleBack}
+                  className="flex items-center gap-1 text-sm text-gray-500 hover:text-black transition-colors mb-6"
+                >
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+                  </svg>
+                  Retour
                 </button>
-              </>
-            ) : (
-              <>
-                Déjà un compte ?{" "}
-                <button onClick={() => setTab("connexion")} className="text-pingwash-blue hover:underline font-medium">
-                  Se connecter
-                </button>
+
+                <h1 className="text-[28px] font-bold text-black leading-tight mb-2">
+                  Bon retour !
+                </h1>
+                <p className="text-[15px] text-[#5E5E5E] mb-6">{email}</p>
+
+                <form onSubmit={handleLogin} className="space-y-4">
+                  <input
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Entrez votre mot de passe"
+                    autoFocus
+                    className="w-full px-4 py-[14px] bg-[#F3F3F3] rounded-lg text-[15px] text-black placeholder-[#5E5E5E] focus:outline-none focus:ring-2 focus:ring-black/20 transition-all"
+                  />
+
+                  {error && <p className="text-red-500 text-sm">{error}</p>}
+
+                  <button
+                    type="submit"
+                    disabled={isLoading}
+                    className="w-full py-[14px] bg-pingwash-blue text-white font-medium text-[15px] rounded-lg hover:bg-pingwash-blue-dark transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
+                  >
+                    {isLoading ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      </span>
+                    ) : (
+                      "Se connecter"
+                    )}
+                  </button>
+
+                  <button
+                    type="button"
+                    className="w-full text-center text-sm text-[#5E5E5E] hover:text-black transition-colors"
+                  >
+                    Mot de passe oublié ?
+                  </button>
+                </form>
               </>
             )}
-          </p>
-        </div>
-      </div>
+
+            {/* Step: Signup */}
+            {step === "signup" && (
+              <>
+                <button
+                  onClick={handleBack}
+                  className="flex items-center gap-1 text-sm text-gray-500 hover:text-black transition-colors mb-6"
+                >
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+                  </svg>
+                  Retour
+                </button>
+
+                <h1 className="text-[28px] font-bold text-black leading-tight mb-2">
+                  Créez votre compte
+                </h1>
+                <p className="text-[15px] text-[#5E5E5E] mb-6">{email}</p>
+
+                <form onSubmit={handleSignup} className="space-y-4">
+                  <div className="flex gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setRole("client")}
+                      className={`flex-1 p-3 rounded-lg border-2 transition-all text-left ${
+                        role === "client"
+                          ? "border-pingwash-blue bg-pingwash-ice"
+                          : "border-gray-200 hover:border-gray-400"
+                      }`}
+                    >
+                      <div className="text-base mb-0.5">🚗</div>
+                      <div className="font-semibold text-sm text-black">Client</div>
+                      <div className="text-xs text-[#5E5E5E]">Faire laver mon véhicule</div>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setRole("laveur")}
+                      className={`flex-1 p-3 rounded-lg border-2 transition-all text-left ${
+                        role === "laveur"
+                          ? "border-pingwash-blue bg-pingwash-ice"
+                          : "border-gray-200 hover:border-gray-400"
+                      }`}
+                    >
+                      <div className="text-base mb-0.5">🐧</div>
+                      <div className="font-semibold text-sm text-black">Laveur</div>
+                      <div className="text-xs text-[#5E5E5E]">Rejoindre l&apos;équipe</div>
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <input
+                      type="text"
+                      value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)}
+                      placeholder="Prénom"
+                      autoFocus
+                      className="w-full px-4 py-[14px] bg-[#F3F3F3] rounded-lg text-[15px] text-black placeholder-[#5E5E5E] focus:outline-none focus:ring-2 focus:ring-black/20 transition-all"
+                    />
+                    <input
+                      type="text"
+                      value={lastName}
+                      onChange={(e) => setLastName(e.target.value)}
+                      placeholder="Nom"
+                      className="w-full px-4 py-[14px] bg-[#F3F3F3] rounded-lg text-[15px] text-black placeholder-[#5E5E5E] focus:outline-none focus:ring-2 focus:ring-black/20 transition-all"
+                    />
+                  </div>
+
+                  <input
+                    type="tel"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="Téléphone (optionnel)"
+                    className="w-full px-4 py-[14px] bg-[#F3F3F3] rounded-lg text-[15px] text-black placeholder-[#5E5E5E] focus:outline-none focus:ring-2 focus:ring-black/20 transition-all"
+                  />
+
+                  <input
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Créer un mot de passe"
+                    className="w-full px-4 py-[14px] bg-[#F3F3F3] rounded-lg text-[15px] text-black placeholder-[#5E5E5E] focus:outline-none focus:ring-2 focus:ring-black/20 transition-all"
+                  />
+
+                  {error && <p className="text-red-500 text-sm">{error}</p>}
+
+                  <button
+                    type="submit"
+                    disabled={isLoading}
+                    className="w-full py-[14px] bg-pingwash-blue text-white font-medium text-[15px] rounded-lg hover:bg-pingwash-blue-dark transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
+                  >
+                    {isLoading ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      </span>
+                    ) : (
+                      "Créer mon compte"
+                    )}
+                  </button>
+
+                  <p className="text-xs text-[#5E5E5E] leading-relaxed">
+                    En vous inscrivant, vous acceptez les{" "}
+                    <a href="#" className="underline">Conditions d&apos;utilisation</a> et la{" "}
+                    <a href="#" className="underline">Politique de confidentialité</a> de PINGWASH.
+                  </p>
+                </form>
+              </>
+            )}
+          </div>
+        </main>
+      )}
     </div>
   );
 }

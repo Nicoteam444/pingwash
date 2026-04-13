@@ -160,7 +160,7 @@ export default function Home() {
             {[
               {
                 name: "Essentiel",
-                price: "19",
+                price: "99",
                 color: "pingwash-blue",
                 features: [
                   "Lavage extérieur complet",
@@ -172,7 +172,7 @@ export default function Home() {
               },
               {
                 name: "Premium",
-                price: "39",
+                price: "149",
                 color: "pingwash-green",
                 features: [
                   "Tout l'Essentiel +",
@@ -185,7 +185,7 @@ export default function Home() {
               },
               {
                 name: "Royal",
-                price: "69",
+                price: "199",
                 color: "pingwash-orange",
                 features: [
                   "Tout le Premium +",

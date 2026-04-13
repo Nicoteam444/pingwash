@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import MultiStepForm from "@/components/MultiStepForm";
 import StepCard from "@/components/StepCard";
+import { createClient } from "@/lib/supabase/client";
+import { useAuth } from "@/context/AuthProvider";
 
 const VEHICLE_TYPES = [
   { id: "voiture", icon: "🚗", label: "Voiture" },
@@ -20,14 +22,14 @@ const FORFAITS = [
   {
     id: "essentiel",
     name: "Essentiel",
-    price: 19,
+    price: 99,
     color: "pingwash-blue",
     features: ["Lavage extérieur complet", "Jantes & pneus", "Vitres & rétroviseurs", "Produits 100% éco"],
   },
   {
     id: "premium",
     name: "Premium",
-    price: 39,
+    price: 149,
     color: "pingwash-green",
     popular: true,
     features: [
@@ -41,7 +43,7 @@ const FORFAITS = [
   {
     id: "royal",
     name: "Royal",
-    price: 69,
+    price: 199,
     color: "pingwash-orange",
     features: [
       "Tout le Premium +",
@@ -55,12 +57,12 @@ const FORFAITS = [
 ];
 
 const OPTIONS = [
-  { id: "desodorisant", label: "Désodorisant premium", price: 5, icon: "🌸" },
-  { id: "cuir", label: "Traitement cuir", price: 15, icon: "💺" },
-  { id: "phares", label: "Rénovation phares", price: 25, icon: "💡" },
-  { id: "anti-pluie", label: "Traitement anti-pluie vitres", price: 10, icon: "🌧️" },
-  { id: "jantes-premium", label: "Polissage jantes", price: 12, icon: "✨" },
-  { id: "stickers", label: "Retrait autocollants", price: 8, icon: "🏷️" },
+  { id: "desodorisant", label: "Désodorisant premium", price: 12, icon: "🌸" },
+  { id: "cuir", label: "Traitement cuir", price: 37, icon: "💺" },
+  { id: "phares", label: "Rénovation phares", price: 62, icon: "💡" },
+  { id: "anti-pluie", label: "Traitement anti-pluie vitres", price: 25, icon: "🌧️" },
+  { id: "jantes-premium", label: "Polissage jantes", price: 30, icon: "✨" },
+  { id: "stickers", label: "Retrait autocollants", price: 20, icon: "🏷️" },
 ];
 
 const STEPS = [
@@ -74,6 +76,10 @@ const STEPS = [
 
 export default function OnboardingClient() {
   const router = useRouter();
+  const supabase = createClient();
+  const { user } = useAuth();
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState("");
 
   const [vehicleType, setVehicleType] = useState("");
   const [vehicleBrand, setVehicleBrand] = useState("");
@@ -109,7 +115,62 @@ export default function OnboardingClient() {
     <MultiStepForm
       steps={STEPS}
       accentColor="blue"
-      onComplete={() => router.push("/")}
+      onComplete={async () => {
+        if (!user) {
+          router.push("/connexion?redirect=/onboarding/client");
+          return;
+        }
+
+        setIsSaving(true);
+        setSaveError("");
+
+        try {
+          // 1. Create vehicle
+          const { data: vehicle, error: vehicleError } = await supabase
+            .from("vehicles")
+            .insert({
+              user_id: user.id,
+              type: vehicleType,
+              brand: vehicleBrand || null,
+              model: vehicleModel || null,
+            })
+            .select()
+            .single();
+
+          if (vehicleError) throw vehicleError;
+
+          // 2. Build scheduled_at if planned
+          let scheduledAt = null;
+          if (scheduleType === "planned" && selectedDate && selectedTime) {
+            scheduledAt = new Date(`${selectedDate}T${selectedTime}:00`).toISOString();
+          }
+
+          // 3. Create booking
+          const { error: bookingError } = await supabase.from("bookings").insert({
+            user_id: user.id,
+            vehicle_id: vehicle.id,
+            location_type: locationType || null,
+            address,
+            address_complement: addressComplement || null,
+            postal_code: postalCode,
+            city,
+            schedule_type: scheduleType || null,
+            scheduled_at: scheduledAt,
+            forfait: selectedForfait,
+            options: selectedOptions,
+            total_price: total,
+          });
+
+          if (bookingError) throw bookingError;
+
+          router.push("/");
+        } catch (err) {
+          console.error("Booking save error:", err);
+          setSaveError("Erreur lors de la sauvegarde. Veuillez réessayer.");
+        } finally {
+          setIsSaving(false);
+        }
+      }}
     >
       {/* Étape 1 — Type de véhicule */}
       <StepCard
@@ -487,6 +548,19 @@ export default function OnboardingClient() {
               </p>
             </div>
           </div>
+
+          {saveError && (
+            <div className="mt-4 p-3 bg-red-50 text-red-600 text-sm rounded-xl">
+              {saveError}
+            </div>
+          )}
+
+          {isSaving && (
+            <div className="mt-4 flex items-center justify-center gap-2 text-sm text-gray-500">
+              <span className="w-4 h-4 border-2 border-gray-300 border-t-pingwash-blue rounded-full animate-spin" />
+              Enregistrement en cours...
+            </div>
+          )}
         </div>
       </StepCard>
     </MultiStepForm>

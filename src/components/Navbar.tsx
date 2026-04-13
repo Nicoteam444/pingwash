@@ -1,11 +1,41 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import PingwashLogo from "./PingwashLogo";
+import { useAuth } from "@/context/AuthProvider";
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
+  const { user, profile, isLoading, signOut } = useAuth();
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleSignOut = async () => {
+    await signOut();
+    setDropdownOpen(false);
+    setMenuOpen(false);
+    router.push("/");
+  };
+
+  const initials = profile
+    ? `${(profile.first_name || "")[0] || ""}${(profile.last_name || "")[0] || ""}`.toUpperCase() || "?"
+    : "?";
+
+  const isLaveur = profile?.role === "laveur";
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-100">
@@ -26,18 +56,53 @@ export default function Navbar() {
             <a href="#eco" className="text-sm font-medium text-gray-600 hover:text-pingwash-blue transition-colors">
               Notre engagement
             </a>
-            <Link
-              href="/devenir-laveur"
-              className="text-sm font-medium text-pingwash-green hover:text-pingwash-green-dark transition-colors"
-            >
-              Devenir laveur
-            </Link>
-            <Link
-              href="/connexion"
-              className="inline-flex items-center justify-center px-5 py-2.5 text-sm font-semibold text-white bg-pingwash-blue hover:bg-pingwash-blue-dark rounded-full transition-colors"
-            >
-              Connexion
-            </Link>
+            {!isLaveur && (
+              <Link
+                href="/devenir-laveur"
+                className="text-sm font-medium text-pingwash-green hover:text-pingwash-green-dark transition-colors"
+              >
+                Devenir laveur
+              </Link>
+            )}
+
+            {isLoading ? (
+              <div className="w-9 h-9 rounded-full bg-gray-100 animate-pulse" />
+            ) : user && profile ? (
+              <div className="relative" ref={dropdownRef}>
+                <button
+                  onClick={() => setDropdownOpen(!dropdownOpen)}
+                  className="flex items-center gap-2 focus:outline-none"
+                >
+                  <div className="w-9 h-9 rounded-full bg-pingwash-navy text-white flex items-center justify-center text-sm font-bold">
+                    {initials}
+                  </div>
+                </button>
+
+                {dropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-100 py-2 animate-fade-in-up">
+                    <div className="px-4 py-2 border-b border-gray-100">
+                      <p className="text-sm font-semibold text-pingwash-navy">
+                        {profile.first_name} {profile.last_name}
+                      </p>
+                      <p className="text-xs text-gray-500">{user.email}</p>
+                    </div>
+                    <button
+                      onClick={handleSignOut}
+                      className="w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                    >
+                      Se déconnecter
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <Link
+                href="/connexion"
+                className="inline-flex items-center justify-center px-5 py-2.5 text-sm font-semibold text-white bg-pingwash-blue hover:bg-pingwash-blue-dark rounded-full transition-colors"
+              >
+                Connexion
+              </Link>
+            )}
           </div>
 
           {/* Mobile hamburger */}
@@ -68,16 +133,36 @@ export default function Navbar() {
             <a href="#eco" className="text-sm font-medium text-gray-600 px-2 py-1" onClick={() => setMenuOpen(false)}>
               Notre engagement
             </a>
-            <Link href="/devenir-laveur" className="text-sm font-medium text-pingwash-green px-2 py-1" onClick={() => setMenuOpen(false)}>
-              Devenir laveur
-            </Link>
-            <Link
-              href="/connexion"
-              className="inline-flex items-center justify-center px-5 py-2.5 text-sm font-semibold text-white bg-pingwash-blue rounded-full w-full"
-              onClick={() => setMenuOpen(false)}
-            >
-              Connexion
-            </Link>
+            {!isLaveur && (
+              <Link href="/devenir-laveur" className="text-sm font-medium text-pingwash-green px-2 py-1" onClick={() => setMenuOpen(false)}>
+                Devenir laveur
+              </Link>
+            )}
+
+            {user && profile ? (
+              <>
+                <div className="border-t border-gray-100 mt-2 pt-3 px-2">
+                  <p className="text-sm font-semibold text-pingwash-navy">
+                    {profile.first_name} {profile.last_name}
+                  </p>
+                  <p className="text-xs text-gray-500">{user.email}</p>
+                </div>
+                <button
+                  onClick={handleSignOut}
+                  className="text-sm font-medium text-red-600 px-2 py-1 text-left"
+                >
+                  Se déconnecter
+                </button>
+              </>
+            ) : (
+              <Link
+                href="/connexion"
+                className="inline-flex items-center justify-center px-5 py-2.5 text-sm font-semibold text-white bg-pingwash-blue rounded-full w-full"
+                onClick={() => setMenuOpen(false)}
+              >
+                Connexion
+              </Link>
+            )}
           </div>
         )}
       </div>

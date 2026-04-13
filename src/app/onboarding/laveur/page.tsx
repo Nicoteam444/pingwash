@@ -1,9 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import MultiStepForm from "@/components/MultiStepForm";
 import StepCard from "@/components/StepCard";
+import { createClient } from "@/lib/supabase/client";
+import { useAuth } from "@/context/AuthProvider";
 
 const DAYS = [
   { id: "lun", label: "Lun" },
@@ -47,6 +49,18 @@ const STEPS = [
 
 export default function OnboardingLaveur() {
   const router = useRouter();
+  const supabase = createClient();
+  const { user } = useAuth();
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState("");
+
+  // File refs
+  const idFileRef = useRef<HTMLInputElement>(null);
+  const permisFileRef = useRef<HTMLInputElement>(null);
+  const ribFileRef = useRef<HTMLInputElement>(null);
+  const [idFile, setIdFile] = useState<File | null>(null);
+  const [permisFile, setPermisFile] = useState<File | null>(null);
+  const [ribFile, setRibFile] = useState<File | null>(null);
 
   // Étape 1 — Identité
   const [firstName, setFirstName] = useState("");
@@ -84,10 +98,10 @@ export default function OnboardingLaveur() {
   // Étape 5 — Motivation
   const [motivation, setMotivation] = useState("");
 
-  // Étape 6 — Documents
-  const [idUploaded, setIdUploaded] = useState(false);
-  const [permisUploaded, setPermisUploaded] = useState(false);
-  const [ribUploaded, setRibUploaded] = useState(false);
+  // Étape 6 — Documents (real file tracking via idFile/permisFile/ribFile)
+  const idUploaded = !!idFile;
+  const permisUploaded = !!permisFile;
+  const ribUploaded = !!ribFile;
 
   const totalSlots = Object.values(selectedSlots).reduce((sum, s) => sum + s.length, 0);
 
@@ -95,7 +109,93 @@ export default function OnboardingLaveur() {
     <MultiStepForm
       steps={STEPS}
       accentColor="green"
-      onComplete={() => router.push("/")}
+      onComplete={async () => {
+        if (!user) {
+          router.push("/connexion?redirect=/onboarding/laveur");
+          return;
+        }
+
+        setIsSaving(true);
+        setSaveError("");
+
+        try {
+          // 1. Upload documents to Supabase Storage
+          const uploadFile = async (file: File | null, name: string) => {
+            if (!file) return null;
+            const path = `${user.id}/${name}-${Date.now()}.${file.name.split(".").pop()}`;
+            const { error } = await supabase.storage
+              .from("laveur-documents")
+              .upload(path, file);
+            if (error) throw error;
+            return path;
+          };
+
+          const [idDocPath, permisDocPath, ribDocPath] = await Promise.all([
+            uploadFile(idFile, "id"),
+            uploadFile(permisFile, "permis"),
+            uploadFile(ribFile, "rib"),
+          ]);
+
+          // 2. Create laveur profile
+          const { data: laveurProfile, error: profileError } = await supabase
+            .from("laveur_profiles")
+            .insert({
+              user_id: user.id,
+              experience: experience || null,
+              statut: statut || null,
+              has_siret: hasSiret,
+              siret: siret || null,
+              birth_date: birthDate || null,
+              personal_address: personalAddress || null,
+              personal_city: personalCity || null,
+              personal_postal_code: personalPostalCode || null,
+              zone_city: zoneCity || null,
+              zone_postal_code: zonePostalCode || null,
+              zone_radius_km: parseInt(zoneRadius),
+              motivation: motivation || null,
+              id_document_url: idDocPath,
+              permis_document_url: permisDocPath,
+              rib_document_url: ribDocPath,
+            })
+            .select()
+            .single();
+
+          if (profileError) throw profileError;
+
+          // 3. Insert availability slots
+          const slots = Object.entries(selectedSlots).flatMap(([day, daySlots]) =>
+            daySlots.map((timeSlot) => ({
+              laveur_id: laveurProfile.id,
+              day,
+              time_slot: timeSlot,
+            }))
+          );
+
+          if (slots.length > 0) {
+            const { error: slotsError } = await supabase
+              .from("laveur_availability")
+              .insert(slots);
+            if (slotsError) throw slotsError;
+          }
+
+          // 4. Update profile name/phone if provided
+          await supabase
+            .from("profiles")
+            .update({
+              first_name: firstName || undefined,
+              last_name: lastName || undefined,
+              phone: phone || undefined,
+            })
+            .eq("id", user.id);
+
+          router.push("/");
+        } catch (err) {
+          console.error("Laveur save error:", err);
+          setSaveError("Erreur lors de la sauvegarde. Veuillez réessayer.");
+        } finally {
+          setIsSaving(false);
+        }
+      }}
     >
       {/* Étape 1 — Infos personnelles */}
       <StepCard title="Vos informations" subtitle="Dites-nous qui vous êtes.">
@@ -400,6 +500,29 @@ export default function OnboardingLaveur() {
         subtitle="Uploadez les documents nécessaires à votre inscription."
       >
         <div className="space-y-4">
+          {/* Hidden file inputs */}
+          <input
+            type="file"
+            ref={idFileRef}
+            accept="image/*,.pdf"
+            className="hidden"
+            onChange={(e) => setIdFile(e.target.files?.[0] ?? null)}
+          />
+          <input
+            type="file"
+            ref={permisFileRef}
+            accept="image/*,.pdf"
+            className="hidden"
+            onChange={(e) => setPermisFile(e.target.files?.[0] ?? null)}
+          />
+          <input
+            type="file"
+            ref={ribFileRef}
+            accept="image/*,.pdf"
+            className="hidden"
+            onChange={(e) => setRibFile(e.target.files?.[0] ?? null)}
+          />
+
           {[
             {
               id: "id",
@@ -407,7 +530,8 @@ export default function OnboardingLaveur() {
               desc: "CNI ou passeport en cours de validité",
               icon: "🪪",
               uploaded: idUploaded,
-              setUploaded: setIdUploaded,
+              fileName: idFile?.name,
+              onClick: () => idFileRef.current?.click(),
             },
             {
               id: "permis",
@@ -415,7 +539,8 @@ export default function OnboardingLaveur() {
               desc: "Permis B en cours de validité",
               icon: "🚗",
               uploaded: permisUploaded,
-              setUploaded: setPermisUploaded,
+              fileName: permisFile?.name,
+              onClick: () => permisFileRef.current?.click(),
             },
             {
               id: "rib",
@@ -423,7 +548,8 @@ export default function OnboardingLaveur() {
               desc: "Pour recevoir vos paiements chaque semaine",
               icon: "🏦",
               uploaded: ribUploaded,
-              setUploaded: setRibUploaded,
+              fileName: ribFile?.name,
+              onClick: () => ribFileRef.current?.click(),
             },
           ].map((doc) => (
             <div
@@ -439,11 +565,13 @@ export default function OnboardingLaveur() {
                   <span className="text-2xl">{doc.icon}</span>
                   <div>
                     <p className="text-sm font-semibold text-pingwash-navy">{doc.label}</p>
-                    <p className="text-xs text-gray-500">{doc.desc}</p>
+                    <p className="text-xs text-gray-500">
+                      {doc.uploaded ? doc.fileName : doc.desc}
+                    </p>
                   </div>
                 </div>
                 <button
-                  onClick={() => doc.setUploaded(!doc.uploaded)}
+                  onClick={doc.onClick}
                   className={`px-4 py-2 rounded-full text-xs font-semibold transition-all ${
                     doc.uploaded
                       ? "bg-pingwash-green text-white"
@@ -464,6 +592,19 @@ export default function OnboardingLaveur() {
           {idUploaded && permisUploaded && ribUploaded && (
             <div className="p-4 bg-pingwash-green/10 rounded-xl text-sm font-medium text-pingwash-green text-center">
               ✓ Tous les documents sont uploadés. Vous pouvez confirmer !
+            </div>
+          )}
+
+          {saveError && (
+            <div className="mt-4 p-3 bg-red-50 text-red-600 text-sm rounded-xl">
+              {saveError}
+            </div>
+          )}
+
+          {isSaving && (
+            <div className="mt-4 flex items-center justify-center gap-2 text-sm text-gray-500">
+              <span className="w-4 h-4 border-2 border-gray-300 border-t-pingwash-green rounded-full animate-spin" />
+              Enregistrement en cours...
             </div>
           )}
         </div>
