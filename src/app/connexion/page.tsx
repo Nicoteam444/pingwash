@@ -423,7 +423,17 @@ function ConnexionContent() {
                   </button>
                 </div>
 
-                <p className="text-xs text-[#5E5E5E] mt-8 leading-relaxed">
+                <div className="flex items-center justify-center gap-1 mt-6">
+                  <span className="text-sm text-[#5E5E5E]">Pas encore de compte ?</span>
+                  <button
+                    onClick={() => setStep("signup")}
+                    className="text-sm font-semibold text-pingwash-blue hover:underline"
+                  >
+                    S&apos;inscrire
+                  </button>
+                </div>
+
+                <p className="text-xs text-[#5E5E5E] mt-6 leading-relaxed">
                   En continuant, vous acceptez les{" "}
                   <a href="#" className="underline">Conditions d&apos;utilisation</a> et la{" "}
                   <a href="#" className="underline">Politique de confidentialité</a> de PINGWASH.
