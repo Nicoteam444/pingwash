@@ -32,11 +32,14 @@ export async function updateSession(request: NextRequest) {
     }
   );
 
-  // IMPORTANT: Do not use getSession() — it reads from storage and
-  // isn't guaranteed to be revalidated. Use getUser() instead.
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // Try to get user, but don't fail for anonymous visitors
+  let user = null;
+  try {
+    const { data } = await supabase.auth.getUser();
+    user = data.user;
+  } catch {
+    // No session — anonymous visitor, that's fine
+  }
 
   const pathname = request.nextUrl.pathname;
 

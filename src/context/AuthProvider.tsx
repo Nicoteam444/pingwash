@@ -71,13 +71,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     // Check initial session
     const initAuth = async () => {
-      const {
-        data: { user: currentUser },
-      } = await supabase.auth.getUser();
+      try {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
 
-      setUser(currentUser);
-      if (currentUser) {
-        await fetchProfile(currentUser.id);
+        if (session?.user) {
+          setUser(session.user);
+          await fetchProfile(session.user.id);
+        }
+      } catch {
+        // No session — visitor not logged in, that's fine
       }
       setIsLoading(false);
     };
