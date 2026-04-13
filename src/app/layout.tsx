@@ -12,6 +12,22 @@ export const metadata: Metadata = {
     "lavage entreprise",
     "PINGWASH",
   ],
+  metadataBase: new URL("https://pingwash.com"),
+  openGraph: {
+    title: "PINGWASH — Le laveur qui protège la banquise",
+    description:
+      "Lavage auto, moto & vélo à domicile ou en entreprise. Écologique, rapide et intelligent. Réservez en 30 secondes.",
+    url: "https://pingwash.com",
+    siteName: "PINGWASH",
+    locale: "fr_FR",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "PINGWASH — Le laveur qui protège la banquise",
+    description:
+      "Lavage auto, moto & vélo à domicile ou en entreprise. Écologique, rapide et intelligent.",
+  },
 };
 
 export default function RootLayout({
