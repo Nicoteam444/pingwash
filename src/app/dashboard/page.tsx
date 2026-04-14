@@ -211,8 +211,8 @@ export default function DashboardPage() {
   };
 
   const handleSignOut = async () => {
-    await signOut();
-    router.push("/");
+    try { await signOut(); } catch { /* ignore */ }
+    window.location.href = "/auth/signout";
   };
 
   if (authLoading || !user) {
@@ -234,10 +234,19 @@ export default function DashboardPage() {
             <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
           </button>
           <div className="hidden sm:flex items-center gap-2">
-            <div className={`w-9 h-9 rounded-full bg-gradient-to-br ${getPenguinColor(user.id)} flex items-center justify-center text-lg shadow-sm`}>
-              {getPenguinAvatar(user.id)}
-            </div>
-            <span className="text-sm font-medium text-pingwash-navy">{profile?.first_name}</span>
+            <button
+              onClick={handleSignOut}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-xl hover:bg-red-50 transition-colors group"
+              title="Se déconnecter"
+            >
+              <div className={`w-9 h-9 rounded-full bg-gradient-to-br ${getPenguinColor(user.id)} flex items-center justify-center text-lg shadow-sm`}>
+                {getPenguinAvatar(user.id)}
+              </div>
+              <span className="text-sm font-medium text-pingwash-navy group-hover:text-red-600 transition-colors">{profile?.first_name || "Mon compte"}</span>
+              <svg className="w-4 h-4 text-gray-400 group-hover:text-red-500" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
+              </svg>
+            </button>
           </div>
         </div>
       </header>
