@@ -27,15 +27,15 @@ export default function Navbar() {
   }, []);
 
   const handleSignOut = async () => {
+    setDropdownOpen(false);
+    setMenuOpen(false);
     try {
-      setDropdownOpen(false);
-      setMenuOpen(false);
       await signOut();
-    } catch (e) {
-      console.error("Sign out error:", e);
+    } catch {
+      // ignore
     }
-    router.push("/");
-    router.refresh();
+    // Server-side signout to clear cookies properly
+    window.location.href = "/auth/signout";
   };
 
   const initials = profile
