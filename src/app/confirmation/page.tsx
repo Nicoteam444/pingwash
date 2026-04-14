@@ -24,9 +24,11 @@ export default function ConfirmationPage() {
         <div className="max-w-2xl mx-auto px-4">
           {/* Success header */}
           <div className="text-center mb-10">
-            <div className="w-20 h-20 bg-pingwash-green/10 rounded-full flex items-center justify-center mx-auto mb-6">
-              <span className="text-4xl">🐧</span>
-            </div>
+            <img
+              src="/penguin-hero.png"
+              alt="Pingouin PINGWASH"
+              className="w-40 mx-auto mb-6 drop-shadow-lg"
+            />
             <h1 className="text-3xl font-black text-pingwash-navy mb-2">
               Réservation confirmée !
             </h1>
