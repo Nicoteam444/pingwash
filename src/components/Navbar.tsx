@@ -100,6 +100,13 @@ export default function Navbar() {
                       </p>
                       <p className="text-xs text-gray-500">{user.email}</p>
                     </div>
+                    <Link
+                      href="/dashboard"
+                      onClick={() => setDropdownOpen(false)}
+                      className="block px-4 py-2.5 text-sm text-pingwash-navy hover:bg-pingwash-ice transition-colors"
+                    >
+                      Mon compte
+                    </Link>
                     <button
                       onClick={handleSignOut}
                       className="w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors"
