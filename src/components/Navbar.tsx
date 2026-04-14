@@ -38,9 +38,9 @@ export default function Navbar() {
     window.location.href = "/auth/signout";
   };
 
-  const initials = profile
-    ? `${(profile.first_name || "")[0] || ""}${(profile.last_name || "")[0] || ""}`.toUpperCase() || "?"
-    : "?";
+  const initials = profile?.first_name
+    ? `${(profile.first_name)[0]}${(profile.last_name || "")[0] || ""}`.toUpperCase()
+    : user?.email?.[0]?.toUpperCase() || "🐧";
 
   const isLaveur = profile?.role === "laveur";
 
@@ -86,13 +86,14 @@ export default function Navbar() {
 
             {isLoading ? (
               <div className="w-9 h-9 rounded-full bg-gray-100 animate-pulse" />
-            ) : user && profile ? (
+            ) : user ? (
               <div className="relative" ref={dropdownRef}>
                 <button
                   onClick={() => setDropdownOpen(!dropdownOpen)}
                   className="flex items-center gap-2 focus:outline-none"
+                  title="Mon compte"
                 >
-                  <div className="w-9 h-9 rounded-full bg-pingwash-navy text-white flex items-center justify-center text-sm font-bold">
+                  <div className="w-10 h-10 rounded-full bg-pingwash-navy text-white flex items-center justify-center text-sm font-bold cursor-pointer hover:bg-pingwash-blue-dark transition-colors shadow-sm">
                     {initials}
                   </div>
                 </button>
@@ -101,7 +102,7 @@ export default function Navbar() {
                   <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-100 py-2 animate-fade-in-up z-[60]">
                     <div className="px-4 py-2 border-b border-gray-100">
                       <p className="text-sm font-semibold text-pingwash-navy">
-                        {profile.first_name} {profile.last_name}
+                        {profile?.first_name ? `${profile.first_name} ${profile.last_name || ""}` : "Mon compte"}
                       </p>
                       <p className="text-xs text-gray-500">{user.email}</p>
                     </div>
@@ -165,11 +166,11 @@ export default function Navbar() {
               </Link>
             )}
 
-            {user && profile ? (
+            {user ? (
               <>
                 <div className="border-t border-gray-100 mt-2 pt-3 px-2">
                   <p className="text-sm font-semibold text-pingwash-navy">
-                    {profile.first_name} {profile.last_name}
+                    {profile?.first_name ? `${profile.first_name} ${profile.last_name || ""}` : "Mon compte"}
                   </p>
                   <p className="text-xs text-gray-500">{user.email}</p>
                 </div>
