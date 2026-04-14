@@ -251,11 +251,11 @@ function ConnexionContent() {
 
             <div className="relative max-w-5xl mx-auto px-4 sm:px-6 py-16 sm:py-24">
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-pingwash-navy leading-tight max-w-2xl">
-                Votre véhicule lavé.{" "}
+                Propreté véhicule & bureau.{" "}
                 <span className="text-gradient">Où que vous soyez.</span>
               </h1>
               <p className="mt-4 text-lg text-gray-600 max-w-lg">
-                Réservez un laveur professionnel à domicile ou au bureau en 30 secondes.
+                Lavage auto & ménage de bureaux — réservez un professionnel en 30 secondes.
               </p>
 
               {/* Address search bar */}

@@ -5,9 +5,9 @@ import { ToastProvider } from "@/components/Toast";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "PINGWASH — Le laveur qui protège la banquise",
+  title: "PINGWASH — Propreté véhicule & bureau, la planète préservée",
   description:
-    "Lavage auto, moto & vélo à domicile ou en entreprise. Écologique, rapide et intelligent. Réservez en 30 secondes.",
+    "Lavage auto, moto, vélo & ménage de bureaux à domicile ou en entreprise. Écologique, rapide et intelligent. Réservez en 30 secondes.",
   keywords: [
     "lavage auto",
     "lavage domicile",
@@ -17,9 +17,9 @@ export const metadata: Metadata = {
   ],
   metadataBase: new URL("https://pingwash.com"),
   openGraph: {
-    title: "PINGWASH — Le laveur qui protège la banquise",
+    title: "PINGWASH — Propreté véhicule & bureau, la planète préservée",
     description:
-      "Lavage auto, moto & vélo à domicile ou en entreprise. Écologique, rapide et intelligent. Réservez en 30 secondes.",
+      "Lavage auto, moto, vélo & ménage de bureaux à domicile ou en entreprise. Écologique, rapide et intelligent. Réservez en 30 secondes.",
     url: "https://pingwash.com",
     siteName: "PINGWASH",
     locale: "fr_FR",
@@ -29,13 +29,13 @@ export const metadata: Metadata = {
         url: "/og-image.png",
         width: 2400,
         height: 1260,
-        alt: "PINGWASH — Votre véhicule lavé. La banquise protégée.",
+        alt: "PINGWASH — Propreté véhicule & bureau, la planète préservée.",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "PINGWASH — Le laveur qui protège la banquise",
+    title: "PINGWASH — Propreté véhicule & bureau, la planète préservée",
     description:
       "Lavage auto, moto & vélo à domicile ou en entreprise. Écologique, rapide et intelligent.",
     images: ["/og-image.png"],

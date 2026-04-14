@@ -25,12 +25,12 @@ export default function Home() {
                 <span>🌍</span> Jusqu&apos;à 99% d&apos;eau économisée
               </div>
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black leading-tight tracking-tight">
-                Votre véhicule lavé.{" "}
-                <span className="text-gradient">La banquise protégée.</span>
+                Propreté véhicule & bureau.{" "}
+                <span className="text-gradient">La planète préservée.</span>
               </h1>
               <p className="mt-6 text-lg sm:text-xl text-gray-600 max-w-lg">
-                PINGWASH envoie un laveur professionnel chez vous ou au bureau.
-                Voiture, moto ou vélo — en 30 secondes, c&apos;est réservé.
+                PINGWASH envoie un professionnel chez vous ou au bureau.
+                Lavage auto, moto, vélo & ménage de bureaux — en 30 secondes, c&apos;est réservé.
               </p>
 
               <HeroSearch />
@@ -45,13 +45,42 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Hero illustration - Penguin washing car */}
+            {/* Hero illustration - Minimal SVG penguin */}
             <div className="relative flex items-center justify-center animate-float">
-              <img
-                src="/penguin-hero.png"
-                alt="Pingouin PINGWASH qui lave une voiture"
-                className="w-80 h-auto sm:w-[480px] drop-shadow-xl"
-              />
+              <svg viewBox="0 0 320 320" className="w-72 h-72 sm:w-96 sm:h-96" fill="none">
+                {/* Soft circle background */}
+                <circle cx="160" cy="160" r="140" fill="#e0f2fe" opacity="0.5" />
+                {/* Car - simple flat */}
+                <rect x="90" y="185" width="180" height="55" rx="14" fill="#0ea5e9" />
+                <path d="M120 185 Q130 148 155 148 L220 148 Q245 148 255 185" fill="#0284c7" />
+                <rect x="138" y="155" width="35" height="27" rx="5" fill="#bae6fd" />
+                <rect x="180" y="155" width="35" height="27" rx="5" fill="#bae6fd" />
+                <circle cx="130" cy="242" r="16" fill="#1e293b" />
+                <circle cx="130" cy="242" r="7" fill="#475569" />
+                <circle cx="230" cy="242" r="16" fill="#1e293b" />
+                <circle cx="230" cy="242" r="7" fill="#475569" />
+                {/* Penguin - minimal cute */}
+                <ellipse cx="65" cy="200" rx="28" ry="40" fill="#0c1e2c" />
+                <ellipse cx="65" cy="208" rx="18" ry="26" fill="white" />
+                <circle cx="65" cy="164" r="22" fill="#0c1e2c" />
+                <circle cx="57" cy="160" r="5" fill="white" />
+                <circle cx="73" cy="160" r="5" fill="white" />
+                <circle cx="58" cy="159" r="2.5" fill="#0c1e2c" />
+                <circle cx="74" cy="159" r="2.5" fill="#0c1e2c" />
+                <ellipse cx="65" cy="170" rx="4" ry="2.5" fill="#f97316" />
+                <path d="M57 174 Q65 181 73 174" fill="none" stroke="#0c1e2c" strokeWidth="1.5" strokeLinecap="round" />
+                {/* Flipper with cloth */}
+                <line x1="88" y1="195" x2="100" y2="190" stroke="#0c1e2c" strokeWidth="5" strokeLinecap="round" />
+                <rect x="96" y="184" width="14" height="10" rx="3" fill="#7dd3fc" />
+                {/* Sparkles */}
+                <circle cx="250" cy="145" r="4" fill="#fbbf24" opacity="0.7" />
+                <circle cx="270" cy="170" r="3" fill="#0ea5e9" opacity="0.5" />
+                <circle cx="100" cy="130" r="3" fill="#10b981" opacity="0.6" />
+                {/* Bubbles */}
+                <circle cx="105" cy="175" r="4" fill="#e0f2fe" stroke="#bae6fd" strokeWidth="0.8" />
+                <circle cx="115" cy="165" r="3" fill="#e0f2fe" stroke="#bae6fd" strokeWidth="0.8" />
+                <circle cx="95" cy="168" r="2.5" fill="#e0f2fe" stroke="#bae6fd" strokeWidth="0.8" />
+              </svg>
             </div>
           </div>
         </div>
@@ -64,11 +93,6 @@ export default function Home() {
       <section id="comment-ca-marche" className="py-24 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <img
-              src="/penguin-scenes.png"
-              alt="Les pingouins PINGWASH en action"
-              className="w-full max-w-2xl mx-auto mb-10 drop-shadow-lg"
-            />
             <h2 className="text-3xl sm:text-4xl font-black text-pingwash-navy">
               Propre en <span className="text-gradient">3 étapes</span>
             </h2>
@@ -119,7 +143,7 @@ export default function Home() {
             <h2 className="text-3xl sm:text-4xl font-black text-pingwash-navy">
               Nos <span className="text-gradient">forfaits</span>
             </h2>
-            <p className="mt-4 text-gray-500 text-lg">Voiture, moto ou vélo — il y a un forfait pour vous.</p>
+            <p className="mt-4 text-gray-500 text-lg">Véhicules & bureaux — il y a un forfait pour vous.</p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">

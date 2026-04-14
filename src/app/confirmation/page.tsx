@@ -24,11 +24,21 @@ export default function ConfirmationPage() {
         <div className="max-w-2xl mx-auto px-4">
           {/* Success header */}
           <div className="text-center mb-10">
-            <img
-              src="/penguin-hero.png"
-              alt="Pingouin PINGWASH"
-              className="w-40 mx-auto mb-6 drop-shadow-lg"
-            />
+            <div className="w-24 h-24 mx-auto mb-6">
+              <svg viewBox="0 0 100 100" fill="none" className="w-full h-full">
+                <circle cx="50" cy="50" r="45" fill="#e0f2fe" />
+                <ellipse cx="50" cy="55" rx="18" ry="26" fill="#0c1e2c" />
+                <ellipse cx="50" cy="60" rx="12" ry="17" fill="white" />
+                <circle cx="50" cy="35" r="15" fill="#0c1e2c" />
+                <circle cx="45" cy="33" r="3.5" fill="white" />
+                <circle cx="55" cy="33" r="3.5" fill="white" />
+                <circle cx="45.5" cy="32.5" r="1.8" fill="#0c1e2c" />
+                <circle cx="55.5" cy="32.5" r="1.8" fill="#0c1e2c" />
+                <ellipse cx="50" cy="39" rx="3" ry="1.8" fill="#f97316" />
+                <path d="M44 42 Q50 47 56 42" fill="none" stroke="#0c1e2c" strokeWidth="1.2" strokeLinecap="round" />
+                <text x="65" y="30" fontSize="14" fill="#10b981">✓</text>
+              </svg>
+            </div>
             <h1 className="text-3xl font-black text-pingwash-navy mb-2">
               Réservation confirmée !
             </h1>
