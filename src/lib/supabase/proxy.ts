@@ -55,10 +55,10 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // Redirect away from /connexion if already logged in
+  // Redirect away from /connexion if already logged in → dashboard
   if (user && pathname === "/connexion") {
     const url = request.nextUrl.clone();
-    url.pathname = "/";
+    url.pathname = "/dashboard";
     return NextResponse.redirect(url);
   }
 

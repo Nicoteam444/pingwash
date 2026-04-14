@@ -85,43 +85,31 @@ export default function Navbar() {
             </Link>
 
             {isLoading ? (
-              <div className="w-9 h-9 rounded-full bg-gray-100 animate-pulse" />
+              <div className="w-10 h-10 rounded-full bg-gray-100 animate-pulse" />
             ) : user ? (
-              <div className="relative" ref={dropdownRef}>
-                <button
-                  onClick={() => setDropdownOpen(!dropdownOpen)}
-                  className="flex items-center gap-2 focus:outline-none"
+              <>
+                <Link
+                  href="/dashboard"
+                  className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl hover:bg-pingwash-ice transition-colors"
                   title="Mon compte"
                 >
-                  <div className="w-10 h-10 rounded-full bg-pingwash-navy text-white flex items-center justify-center text-sm font-bold cursor-pointer hover:bg-pingwash-blue-dark transition-colors shadow-sm">
+                  <div className="w-10 h-10 rounded-full bg-pingwash-navy text-white flex items-center justify-center text-sm font-bold shadow-sm">
                     {initials}
                   </div>
+                  <span className="text-sm font-medium text-pingwash-navy hidden lg:block">
+                    {profile?.first_name || "Mon compte"}
+                  </span>
+                </Link>
+                <button
+                  onClick={handleSignOut}
+                  className="p-2 text-gray-400 hover:text-red-500 transition-colors"
+                  title="Se déconnecter"
+                >
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
+                  </svg>
                 </button>
-
-                {dropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-100 py-2 animate-fade-in-up z-[60]">
-                    <div className="px-4 py-2 border-b border-gray-100">
-                      <p className="text-sm font-semibold text-pingwash-navy">
-                        {profile?.first_name ? `${profile.first_name} ${profile.last_name || ""}` : "Mon compte"}
-                      </p>
-                      <p className="text-xs text-gray-500">{user.email}</p>
-                    </div>
-                    <Link
-                      href="/dashboard"
-                      onClick={() => setDropdownOpen(false)}
-                      className="block px-4 py-2.5 text-sm text-pingwash-navy hover:bg-pingwash-ice transition-colors"
-                    >
-                      Mon compte
-                    </Link>
-                    <button
-                      onClick={handleSignOut}
-                      className="w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors"
-                    >
-                      Se déconnecter
-                    </button>
-                  </div>
-                )}
-              </div>
+              </>
             ) : (
               <Link
                 href="/connexion"
