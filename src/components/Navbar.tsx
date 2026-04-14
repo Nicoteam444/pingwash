@@ -27,10 +27,15 @@ export default function Navbar() {
   }, []);
 
   const handleSignOut = async () => {
-    await signOut();
-    setDropdownOpen(false);
-    setMenuOpen(false);
+    try {
+      setDropdownOpen(false);
+      setMenuOpen(false);
+      await signOut();
+    } catch (e) {
+      console.error("Sign out error:", e);
+    }
     router.push("/");
+    router.refresh();
   };
 
   const initials = profile
@@ -93,7 +98,7 @@ export default function Navbar() {
                 </button>
 
                 {dropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-100 py-2 animate-fade-in-up">
+                  <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-100 py-2 animate-fade-in-up z-[60]">
                     <div className="px-4 py-2 border-b border-gray-100">
                       <p className="text-sm font-semibold text-pingwash-navy">
                         {profile.first_name} {profile.last_name}
@@ -168,6 +173,13 @@ export default function Navbar() {
                   </p>
                   <p className="text-xs text-gray-500">{user.email}</p>
                 </div>
+                <Link
+                  href="/dashboard"
+                  onClick={() => setMenuOpen(false)}
+                  className="text-sm font-medium text-pingwash-blue px-2 py-1"
+                >
+                  Mon compte
+                </Link>
                 <button
                   onClick={handleSignOut}
                   className="text-sm font-medium text-red-600 px-2 py-1 text-left"
