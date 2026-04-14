@@ -227,9 +227,9 @@ export default function DashboardPage() {
       <header className="bg-white border-b border-gray-100 px-4 sm:px-6 py-3 flex items-center justify-between sticky top-0 z-40">
         <Link href="/"><PingwashLogo className="h-8" /></Link>
         <div className="flex items-center gap-3">
-          <Link href="/#reserver" className="hidden sm:inline-flex items-center gap-1 px-4 py-2 text-sm font-bold text-white bg-pingwash-blue hover:bg-pingwash-blue-dark rounded-xl transition-all">
+          <button onClick={() => { setTab("commande"); setMobileMenuOpen(false); }} className="hidden sm:inline-flex items-center gap-1 px-4 py-2 text-sm font-bold text-white bg-pingwash-blue hover:bg-pingwash-blue-dark rounded-xl transition-all">
             + Nouveau lavage
-          </Link>
+          </button>
           <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="sm:hidden p-2">
             <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
           </button>
@@ -411,7 +411,7 @@ export default function DashboardPage() {
                 <div className="bg-white rounded-2xl border border-gray-200 p-12 text-center">
                   <div className="text-4xl mb-3">🐧</div>
                   <h3 className="text-lg font-bold text-pingwash-navy mb-2">Aucun lavage</h3>
-                  <Link href="/#reserver" className="text-sm text-pingwash-blue hover:underline font-medium">Réserver un lavage</Link>
+                  <button onClick={() => setTab("commande")} className="text-sm text-pingwash-blue hover:underline font-medium">Réserver un lavage</button>
                 </div>
               ) : (
                 <div className="space-y-3">
