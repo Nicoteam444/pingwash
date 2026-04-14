@@ -5,9 +5,11 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import AddressAutocomplete from "./AddressAutocomplete";
 import type { AddressDetails } from "./AddressAutocomplete";
+import { useAuth } from "@/context/AuthProvider";
 
 export default function HeroSearch() {
   const router = useRouter();
+  const { user, isLoading } = useAuth();
   const [address, setAddress] = useState("");
   const [schedule, setSchedule] = useState("now");
 
@@ -25,7 +27,6 @@ export default function HeroSearch() {
       sessionStorage.setItem("pingwash_address", address);
     }
     sessionStorage.setItem("pingwash_schedule", schedule);
-    // Scroll to booking widget
     const el = document.getElementById("reserver");
     if (el) {
       el.scrollIntoView({ behavior: "smooth" });
@@ -65,6 +66,24 @@ export default function HeroSearch() {
           Réserver
         </button>
       </form>
+
+      {/* Big signup button for non-connected users */}
+      {!isLoading && !user && (
+        <div className="mt-6 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+          <Link
+            href="/connexion"
+            className="inline-flex items-center justify-center gap-2 px-8 py-4 text-base font-bold text-white bg-pingwash-green hover:bg-pingwash-green-dark rounded-xl transition-all shadow-lg shadow-pingwash-green/30 hover:scale-105"
+          >
+            🐧 Créer mon compte gratuitement
+          </Link>
+          <span className="text-sm text-gray-500">
+            Déjà inscrit ?{" "}
+            <Link href="/connexion" className="text-pingwash-blue font-semibold hover:underline">
+              Se connecter
+            </Link>
+          </span>
+        </div>
+      )}
 
       <div className="mt-4">
         <Link

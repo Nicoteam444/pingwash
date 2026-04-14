@@ -11,7 +11,25 @@ import type { AddressDetails } from "@/components/AddressAutocomplete";
 import type { Booking, Vehicle } from "@/lib/supabase/types";
 import PingwashLogo from "@/components/PingwashLogo";
 
-type Tab = "lavages" | "paiement" | "adresses" | "vehicules" | "parametres";
+type Tab = "commande" | "lavages" | "paiement" | "adresses" | "vehicules" | "parametres";
+
+const PENGUIN_AVATARS = ["🐧", "🐾", "❄️", "🧊", "🌊", "🐳", "🦭", "⛄"];
+function getPenguinAvatar(userId: string) {
+  const index = userId.charCodeAt(0) % PENGUIN_AVATARS.length;
+  return PENGUIN_AVATARS[index];
+}
+
+const PENGUIN_COLORS = [
+  "from-blue-400 to-cyan-300",
+  "from-teal-400 to-emerald-300",
+  "from-sky-400 to-blue-300",
+  "from-indigo-400 to-blue-300",
+  "from-cyan-400 to-teal-300",
+];
+function getPenguinColor(userId: string) {
+  const index = userId.charCodeAt(1) % PENGUIN_COLORS.length;
+  return PENGUIN_COLORS[index];
+}
 
 interface SavedAddress {
   id: string;
@@ -24,6 +42,7 @@ interface SavedAddress {
 }
 
 const TABS: { id: Tab; label: string; icon: string }[] = [
+  { id: "commande", label: "Nouvelle commande", icon: "➕" },
   { id: "lavages", label: "Mes lavages", icon: "🧽" },
   { id: "paiement", label: "Paiement", icon: "💳" },
   { id: "adresses", label: "Mes adresses", icon: "📍" },
@@ -59,6 +78,15 @@ export default function DashboardPage() {
 
   // Forms
   const [statusFilter, setStatusFilter] = useState("all");
+  // New order form
+  const [orderVehicle, setOrderVehicle] = useState("voiture");
+  const [orderAddress, setOrderAddress] = useState("");
+  const [orderAddressDetails, setOrderAddressDetails] = useState<AddressDetails | null>(null);
+  const [orderSchedule, setOrderSchedule] = useState("immediate");
+  const [orderDate, setOrderDate] = useState("");
+  const [orderTime, setOrderTime] = useState("");
+  const [orderForfait, setOrderForfait] = useState("premium");
+  const [orderSubmitting, setOrderSubmitting] = useState(false);
   const [showAddVehicle, setShowAddVehicle] = useState(false);
   const [newVehicleType, setNewVehicleType] = useState("voiture");
   const [newVehicleBrand, setNewVehicleBrand] = useState("");
@@ -145,6 +173,43 @@ export default function DashboardPage() {
     if (refreshProfile) await refreshProfile();
   };
 
+  const submitOrder = async () => {
+    if (!user || !orderAddress) { toast("Veuillez renseigner une adresse", "error"); return; }
+    setOrderSubmitting(true);
+    try {
+      const prices: Record<string, number> = { essentiel: 99, premium: 149, royal: 199 };
+      const { data: vehicle, error: vErr } = await supabase.from("vehicles").insert({ user_id: user.id, type: orderVehicle }).select().single();
+      if (vErr) throw vErr;
+      let scheduledAt = null;
+      if (orderSchedule === "planned" && orderDate && orderTime) scheduledAt = new Date(`${orderDate}T${orderTime}:00`).toISOString();
+      const { error: bErr } = await supabase.from("bookings").insert({
+        user_id: user.id, vehicle_id: vehicle.id, location_type: "domicile",
+        address: orderAddress, postal_code: orderAddressDetails?.postcode || "", city: orderAddressDetails?.city || "",
+        schedule_type: orderSchedule, scheduled_at: scheduledAt,
+        forfait: orderForfait, options: [], total_price: prices[orderForfait] || 149,
+      });
+      if (bErr) throw bErr;
+      toast("Commande créée !");
+      setTab("lavages");
+      setOrderAddress(""); setOrderAddressDetails(null);
+      // Refresh bookings
+      const { data } = await supabase.from("bookings").select("*").eq("user_id", user.id).order("created_at", { ascending: false });
+      setBookings((data as Booking[]) || []);
+    } catch (err) {
+      console.error(err);
+      toast("Erreur lors de la commande", "error");
+    } finally {
+      setOrderSubmitting(false);
+    }
+  };
+
+  const updateBookingStatus = async (bookingId: string, newStatus: string) => {
+    const { error } = await supabase.from("bookings").update({ status: newStatus }).eq("id", bookingId);
+    if (error) { toast(error.message, "error"); return; }
+    setBookings((prev) => prev.map((b) => b.id === bookingId ? { ...b, status: newStatus as Booking["status"] } : b));
+    toast(`Statut mis à jour : ${STATUS_MAP[newStatus]?.label || newStatus}`);
+  };
+
   const handleSignOut = async () => {
     await signOut();
     router.push("/");
@@ -169,8 +234,8 @@ export default function DashboardPage() {
             <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
           </button>
           <div className="hidden sm:flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-pingwash-navy text-white flex items-center justify-center text-xs font-bold">
-              {(profile?.first_name?.[0] || "")}{(profile?.last_name?.[0] || "")}
+            <div className={`w-9 h-9 rounded-full bg-gradient-to-br ${getPenguinColor(user.id)} flex items-center justify-center text-lg shadow-sm`}>
+              {getPenguinAvatar(user.id)}
             </div>
             <span className="text-sm font-medium text-pingwash-navy">{profile?.first_name}</span>
           </div>
@@ -180,6 +245,18 @@ export default function DashboardPage() {
       <div className="flex flex-1">
         {/* Sidebar */}
         <aside className={`${mobileMenuOpen ? "block" : "hidden"} sm:block w-full sm:w-64 bg-white border-r border-gray-100 sm:sticky sm:top-[57px] sm:h-[calc(100vh-57px)] overflow-y-auto`}>
+          {/* Profile card */}
+          <div className="p-4 border-b border-gray-100">
+            <div className="flex items-center gap-3">
+              <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${getPenguinColor(user.id)} flex items-center justify-center text-2xl shadow-sm`}>
+                {getPenguinAvatar(user.id)}
+              </div>
+              <div>
+                <p className="text-sm font-bold text-pingwash-navy">{profile?.first_name} {profile?.last_name}</p>
+                <p className="text-xs text-gray-500">{user.email}</p>
+              </div>
+            </div>
+          </div>
           <nav className="p-4 space-y-1">
             {TABS.map((t) => (
               <button
@@ -207,6 +284,93 @@ export default function DashboardPage() {
 
         {/* Content */}
         <main className="flex-1 p-4 sm:p-8 max-w-4xl">
+          {/* ===== NOUVELLE COMMANDE ===== */}
+          {tab === "commande" && (
+            <>
+              <h1 className="text-2xl font-black text-pingwash-navy mb-6">Nouvelle commande</h1>
+              <div className="bg-white rounded-2xl border border-gray-200 p-6 space-y-6">
+                {/* Véhicule */}
+                <div>
+                  <label className="block text-sm font-semibold text-pingwash-navy mb-3">🚗 Véhicule</label>
+                  <div className="grid grid-cols-3 gap-3">
+                    {(["voiture", "moto", "velo"] as const).map((t) => (
+                      <button key={t} onClick={() => setOrderVehicle(t)} className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${orderVehicle === t ? "border-pingwash-blue bg-pingwash-blue/5" : "border-gray-200 hover:border-gray-300"}`}>
+                        <span className="text-2xl">{VEHICLE_MAP[t]?.split(" ")[0]}</span>
+                        <span className="text-xs font-semibold">{VEHICLE_MAP[t]?.split(" ")[1]}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Adresse */}
+                <div>
+                  <label className="block text-sm font-semibold text-pingwash-navy mb-3">📍 Adresse</label>
+                  {addresses.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mb-3">
+                      {addresses.map((a) => (
+                        <button key={a.id} onClick={() => { setOrderAddress(a.address); setOrderAddressDetails({ display_name: a.address, postcode: a.postal_code, city: a.city }); }}
+                          className={`px-3 py-1.5 text-xs rounded-full border transition-all ${orderAddress === a.address ? "border-pingwash-blue bg-pingwash-blue/5 text-pingwash-blue font-semibold" : "border-gray-200 text-gray-600 hover:border-gray-300"}`}>
+                          {a.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  <AddressAutocomplete value={orderAddress} onChange={(d, details) => { setOrderAddress(d); setOrderAddressDetails(details); }} placeholder="Ou saisissez une nouvelle adresse" />
+                </div>
+
+                {/* Créneau */}
+                <div>
+                  <label className="block text-sm font-semibold text-pingwash-navy mb-3">📅 Quand</label>
+                  <div className="flex gap-3">
+                    <button onClick={() => setOrderSchedule("immediate")} className={`flex-1 p-3 rounded-xl text-sm font-medium transition-all ${orderSchedule === "immediate" ? "bg-pingwash-blue text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>
+                      ⚡ Maintenant
+                    </button>
+                    <button onClick={() => setOrderSchedule("planned")} className={`flex-1 p-3 rounded-xl text-sm font-medium transition-all ${orderSchedule === "planned" ? "bg-pingwash-blue text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>
+                      📅 Planifier
+                    </button>
+                  </div>
+                  {orderSchedule === "planned" && (
+                    <div className="grid grid-cols-2 gap-3 mt-3">
+                      <input type="date" value={orderDate} onChange={(e) => setOrderDate(e.target.value)} className="px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-pingwash-blue/30" />
+                      <select value={orderTime} onChange={(e) => setOrderTime(e.target.value)} className="px-4 py-3 rounded-xl border border-gray-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-pingwash-blue/30">
+                        <option value="">Créneau</option>
+                        {["08:00","09:00","10:00","11:00","12:00","13:00","14:00","15:00","16:00","17:00","18:00","19:00"].map(t => <option key={t} value={t}>{t}</option>)}
+                      </select>
+                    </div>
+                  )}
+                </div>
+
+                {/* Forfait */}
+                <div>
+                  <label className="block text-sm font-semibold text-pingwash-navy mb-3">🧴 Forfait</label>
+                  <div className="grid grid-cols-3 gap-3">
+                    {[
+                      { id: "essentiel", name: "Essentiel", price: 99 },
+                      { id: "premium", name: "Premium", price: 149, popular: true },
+                      { id: "royal", name: "Royal", price: 199 },
+                    ].map((f) => (
+                      <button key={f.id} onClick={() => setOrderForfait(f.id)} className={`relative p-4 rounded-xl border-2 text-center transition-all ${orderForfait === f.id ? "border-pingwash-blue bg-pingwash-blue/5" : "border-gray-200 hover:border-gray-300"}`}>
+                        {f.popular && <span className="absolute -top-2 right-2 text-[10px] bg-pingwash-green text-white px-2 py-0.5 rounded-full font-bold">Top</span>}
+                        <div className="text-xl font-black text-pingwash-navy">{f.price}€</div>
+                        <div className="text-xs font-semibold text-gray-600">{f.name}</div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Submit */}
+                <button onClick={submitOrder} disabled={orderSubmitting || !orderAddress}
+                  className="w-full py-4 bg-pingwash-blue text-white font-bold text-base rounded-xl hover:bg-pingwash-blue-dark transition-all disabled:bg-gray-300 disabled:cursor-not-allowed shadow-lg shadow-pingwash-blue/20">
+                  {orderSubmitting ? (
+                    <span className="flex items-center justify-center gap-2"><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /></span>
+                  ) : (
+                    "Commander — " + ({ essentiel: 99, premium: 149, royal: 199 }[orderForfait] || 149) + "€"
+                  )}
+                </button>
+              </div>
+            </>
+          )}
+
           {/* ===== LAVAGES ===== */}
           {tab === "lavages" && (
             <>
@@ -263,6 +427,26 @@ export default function DashboardPage() {
                         {b.options && b.options.length > 0 && (
                           <div className="flex flex-wrap gap-1 mt-3">
                             {b.options.map((o) => <span key={o} className="text-xs bg-pingwash-ice text-pingwash-blue px-2 py-0.5 rounded-lg">{o}</span>)}
+                          </div>
+                        )}
+                        {/* Status actions */}
+                        {b.status !== "completed" && b.status !== "cancelled" && (
+                          <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t border-gray-100">
+                            {b.status === "pending" && (
+                              <>
+                                <button onClick={() => updateBookingStatus(b.id, "confirmed")} className="px-3 py-1.5 text-xs font-semibold bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-all">✓ Valider</button>
+                                <button onClick={() => updateBookingStatus(b.id, "cancelled")} className="px-3 py-1.5 text-xs font-semibold bg-red-50 text-red-500 rounded-lg hover:bg-red-100 transition-all">✕ Annuler</button>
+                              </>
+                            )}
+                            {b.status === "confirmed" && (
+                              <>
+                                <button onClick={() => updateBookingStatus(b.id, "in_progress")} className="px-3 py-1.5 text-xs font-semibold bg-pingwash-green/10 text-pingwash-green rounded-lg hover:bg-pingwash-green/20 transition-all">🧽 En cours</button>
+                                <button onClick={() => updateBookingStatus(b.id, "cancelled")} className="px-3 py-1.5 text-xs font-semibold bg-red-50 text-red-500 rounded-lg hover:bg-red-100 transition-all">✕ Annuler</button>
+                              </>
+                            )}
+                            {b.status === "in_progress" && (
+                              <button onClick={() => updateBookingStatus(b.id, "completed")} className="px-3 py-1.5 text-xs font-semibold bg-pingwash-green/10 text-pingwash-green rounded-lg hover:bg-pingwash-green/20 transition-all">✨ Terminé</button>
+                            )}
                           </div>
                         )}
                       </div>
